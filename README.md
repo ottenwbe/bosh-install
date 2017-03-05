@@ -40,5 +40,5 @@
         bosh -e bosh-1 upload-stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent
         ```
 
-## TODO: Use Terraform to set up AWS
+## TODO: Use Terraform to set up AWS inception vm
 1. Install terraform https://www.terraform.io/intro/getting-started/install.html
