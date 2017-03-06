@@ -1,9 +1,12 @@
-# Install BOSH on AWS #
+# Install BOSH and UAA on AWS #
 
 ## Install inception VM ##
 
-1. Configure your AWS as described on [bosh.io](https://bosh.io/docs/init-aws.html)
-    1. NOTE: Do not perform the bosh-init steps, this will be done in the remainder of this guide; only prepare your AWS   
+1. Configure your AWS (for details see [bosh.io](https://bosh.io/docs/init-aws.html); NOTE: Do not perform the bosh-init steps, this will be done in the remainder of this guide; only prepare your AWS)
+    1. Create a Virtual Private Cloud (VPC) with a Single Public Subnet
+    1. Create an Elastic IP 
+    1. Create a Key Pair - Ouput: bosh.pem
+    1. Create and Configure Security Group
 1. Setup an inception vm via the AWS console
     1. Manually start an Ubuntu machine in the ec2 management console
     1. Make sure that the instance is running in the bosh network
