@@ -41,7 +41,10 @@
     uaac target https://10.0.0.XX:8443 --ca-cert uaa.pem
     uaac token client get admin
     ```
-### Test UAA ###
+    
+### Test team functionality of bosh ###
+
+#### Reader ####
 1. Create a bosh.reader group
 1. Create a user in the rule
 1. Login with the user
@@ -53,7 +56,13 @@
     Uploading stemcell file:
       Director responded with non-successful status code '401' response '{"code":600000,"description":"Require one of the scopes: bosh.admin, bosh.413d6e27-371f-415f-9686-bda42dc2fd19.admin"}'
     ```
+    
+##### Team admin #####
+1. Create a bosh.teams.test.admin group
+1. Upload a release as bosh.admin
+1. login as team admin
+1. upload release
 
-## TODO:   
+## TODO:  ## 
 1. Use Terraform to set up AWS inception vm
     1. Install terraform https://www.terraform.io/intro/getting-started/install.html
