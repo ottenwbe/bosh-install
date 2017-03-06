@@ -58,6 +58,7 @@
     ```
     
 ##### Team admin #####
+1. Before deploying the director add bosh.teams.*.admin to the scope in the uaa (i.e., uaa.yml in the bosh deployment folder)
 1. Create a bosh.teams.test.admin group
 1. Upload a release as bosh.admin
 1. login as team admin
