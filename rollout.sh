@@ -6,5 +6,5 @@ cd terraform_bootstrap
 ssh-keygen -t rsa -C "insecure-deployer" -P '' -f ssh/insecure-deployer
 
 # Deploy Inception VM
-terraform plan
-terraform apply
+terraform plan --out=plan
+terraform apply plan

@@ -42,13 +42,12 @@ bosh create-env ~/workspace/bosh-deployment/bosh.yml \
   -v subnet_id=$6 \
   --var-file private_key=~/bosh.pem
 
-
-# Alias deployed Director
-bosh -e $3 --ca-cert <(bosh int ./creds.yml --path /director_ssl/ca) alias-env bosh-1
-
 # Log in to the Director
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=`bosh int ./creds.yml --path /admin_password`
+
+# Alias deployed Director
+bosh -e $3 --ca-cert <(bosh int ./creds.yml --path /director_ssl/ca) alias-env bosh-1
 
 # Update cloud config -- single az
 bosh -n -e bosh-1 update-cloud-config ~/workspace/bosh-deployment/aws/cloud-config.yml \
@@ -60,4 +59,4 @@ bosh -n -e bosh-1 update-cloud-config ~/workspace/bosh-deployment/aws/cloud-conf
 # Install cloud config and
 
 # Upload a stemcell
-bosh upload stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3363.9
+bosh -e bosh-1 upload-stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3363.9
