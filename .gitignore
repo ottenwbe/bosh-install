@@ -24,3 +24,12 @@
 
 #idea
 .idea/
+
+#terraform
+insecure-deployer
+*.pub
+makeaws.iml
+terraform.tfvars
+*.pem
+*.txt
+plan

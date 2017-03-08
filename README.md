@@ -1,5 +1,8 @@
 # Install BOSH and UAA on AWS #
 
+
+#Manual Deployment
+
 ## Install inception VM ##
 
 1. Configure your AWS (for details see [bosh.io](https://bosh.io/docs/init-aws.html); NOTE: Do not perform the bosh-init steps, this will be done in the remainder of this guide; only prepare your AWS)
@@ -67,6 +70,9 @@
 1. login as team admin
 1. upload release
 
-## TODO:  ## 
+# Automation #
+
+## Bootstrap via Terraform ## 
 1. Use Terraform to set up AWS inception vm
-    1. Install terraform https://www.terraform.io/intro/getting-started/install.html
+    1. See: [Detailed Instructions](terraform_bootstrap/REAME.md)
+    
