@@ -6,6 +6,11 @@ variable "secret_key" {
   description = "Secret Access"
 }
 
+variable "default_az"     {
+  description = "Default AZ"
+  default     = "eu-central-1a"
+}
+
 variable "region"     {
   description = "AWS region to host the bosh network"
   default     = "eu-central-1"

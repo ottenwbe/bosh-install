@@ -14,7 +14,7 @@ resource "aws_instance" "bosh-inception" {
       user = "ubuntu"
       host = "${aws_instance.bosh-inception.public_dns}"
       timeout = "1m"
-      private_key = "${file("insecure-deployer")}" #/home/chii/workspace/bosh/makeaws/terraform_bootstrap/insecure-deployer"#
+      private_key = "${file("insecure-deployer")}"
     }
     source = "bosh.pem"
     destination = "/home/ubuntu/bosh.pem"
@@ -25,7 +25,7 @@ resource "aws_instance" "bosh-inception" {
       user = "ubuntu"
       host = "${aws_instance.bosh-inception.public_dns}"
       timeout = "1m"
-      private_key = "${file("insecure-deployer")}" #/home/chii/workspace/bosh/makeaws/terraform_bootstrap/insecure-deployer"#
+      private_key = "${file("insecure-deployer")}"
     }
     source = "install.sh"
     destination = "/home/ubuntu/install.sh"
@@ -35,7 +35,7 @@ resource "aws_instance" "bosh-inception" {
     connection {
       user = "ubuntu"
       host = "${aws_instance.bosh-inception.public_dns}"
-      timeout = "5m"
+      timeout = "25m"
       private_key = "${file("insecure-deployer")}"
     }
     inline = [
