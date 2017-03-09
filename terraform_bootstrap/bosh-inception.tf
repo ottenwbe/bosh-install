@@ -40,7 +40,7 @@ resource "aws_instance" "bosh-inception" {
     }
     inline = [
       "chmod +x install.sh",
-      "./install.sh ${var.vpc_cidr} ${var.vpc_gw} ${var.bosh_ip} ${var.access_key} ${var.secret_key} ${aws_subnet.public.id}"
+      "./install.sh ${var.bosh_subnet_cidr} ${var.bosh_gw} ${var.bosh_ip} ${var.access_key} ${var.secret_key} ${aws_subnet.bosh_director.id} ~/bosh.pem"
     ]
   }
   tags = {

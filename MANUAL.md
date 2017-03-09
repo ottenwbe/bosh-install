@@ -4,13 +4,18 @@
 
 1. Configure your AWS (for details see [bosh.io](https://bosh.io/docs/init-aws.html); NOTE: Do not perform the bosh-init steps, this will be done in the remainder of this guide; only prepare your AWS)
     1. [Create a Virtual Private Cloud (VPC) with a Single Public Subnet](https://bosh.io/docs/init-aws.html#create-vpc) 
-    1. Create an Elastic IP 
-    1. Create a Key Pair - Output: bosh.pem
-    1. Create and Configure Security Group
-1. Setup an inception vm via the AWS console
-    1. Manually start an Ubuntu machine in the ec2 management console
-    1. Make sure that the instance is running in the bosh network
-1. ssh to inception vm
+    1. [Create an Elastic IP]() 
+    1. [Create a Key Pair]() - Output: ```bosh.pem```
+    1. [Create and Configure Security Group]()
+1. Create a second pair of keys - Output ```deployer.pem```    
+1. Setup an jumpbox VM via the AWS console. 
+From this machine you will perform the bosh setup.
+    1. Manually start an Ubuntu machine in the ec2 management console.
+    1. Make sure that the instance is running in the bosh network (see step 1).
+1. ssh to jumpbox
+    ```sh
+    ssh -i "deployer-^Cy.pem" ubuntu@ec2-54-93-44-234.eu-central-1.compute.amazonaws.com
+    ```
 1. Install gcc, ruby, and other prerequisites
     ```sh
     sudo apt -y install git gcc make ruby zlibc zlib1g-dev ruby-bundler ruby-dev build-essential patch libssl-dev bison openssl libreadline6 libreadline6-dev curl git-core libssl-dev libyaml-dev libxml2-dev autoconf libc6-dev ncurses-dev automake libtool

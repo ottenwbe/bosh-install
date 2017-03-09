@@ -21,6 +21,11 @@ variable "vpc_gw" {
   default = "10.128.0.1"
 }
 
+variable "bosh_gw" {
+  description = "GW"
+  default = "10.128.1.1"
+}
+
 variable "vpc_cidr" {
   description = "CIDR for VPC"
   default     = "10.128.0.0/16"
@@ -28,7 +33,12 @@ variable "vpc_cidr" {
 
 variable "bosh_ip" {
   description = "BOSH Director IP"
-  default     = "10.128.0.6"
+  default     = "10.128.1.6"
+}
+
+variable "bosh_subnet_cidr" {
+  description = "CIDR for bosh subnet"
+  default     = "10.128.1.0/24"
 }
 
 variable "public_subnet_cidr" {
@@ -38,6 +48,7 @@ variable "public_subnet_cidr" {
 
 /* Ubuntu amis by region */
 variable "amis" {
+  type = "map"
   description = "Base AMI to launch the inception vm"
   default = {
     eu-central-1 = "ami-829145ed"

@@ -40,7 +40,8 @@ bosh create-env ~/workspace/bosh-deployment/bosh.yml \
   -v default_key_name=bosh \
   -v default_security_groups=[bosh] \
   -v subnet_id=$6 \
-  --var-file private_key=~/bosh.pem
+  --var-file private_key=$7
+  #~/bosh.pem
 
 # Log in to the Director
 export BOSH_CLIENT=admin
@@ -56,7 +57,7 @@ bosh -n -e bosh-1 update-cloud-config ~/workspace/bosh-deployment/aws/cloud-conf
   -v internal_cidr=$1 \
   -v internal_gw=$2
 
-# Install cloud config and
+# Install a cloud config
 
 # Upload a stemcell
 bosh -e bosh-1 upload-stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3363.9

@@ -1,5 +1,7 @@
 # Install BOSH and UAA on AWS #
 
+NOTE: This tutorial is still WIP!
+
 Instructions and scripts to install and automate bosh environment on aws.
 
 ## Manual Deployment ##

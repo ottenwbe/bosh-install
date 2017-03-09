@@ -9,7 +9,17 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   depends_on = ["aws_internet_gateway.default"]
   tags {
-    Name = "bosh"
+    Name = "bosh-inception"
+  }
+}
+
+resource "aws_subnet" "bosh_director" {
+  vpc_id            = "${aws_vpc.default.id}"
+  cidr_block        = "${var.bosh_subnet_cidr}"
+  availability_zone = "${var.default_az}"
+  map_public_ip_on_launch = false
+  tags {
+    Name = "bosh-director"
   }
 }
 
@@ -23,5 +33,10 @@ resource "aws_route_table" "public" {
 
 resource "aws_route_table_association" "public" {
   subnet_id = "${aws_subnet.public.id}"
+  route_table_id = "${aws_route_table.public.id}"
+}
+
+resource "aws_route_table_association" "bosh" {
+  subnet_id = "${aws_subnet.bosh_director.id}"
   route_table_id = "${aws_route_table.public.id}"
 }
