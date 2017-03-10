@@ -1,8 +1,10 @@
 # Install BOSH and UAA on AWS #
 
-NOTE: This tutorial is still WIP!
+NOTE: This tutorial and scripts are still WIP!
 
-Instructions and scripts to install and automate bosh environment on aws.
+This repository provides instructions and scripts to install and automate bosh environment on aws.
+First, we describe how to manually set up a bosh environment. 
+Then we show how to set the bosh environment up with terraform.
 
 ## Manual Deployment ##
 
@@ -11,6 +13,7 @@ Instructions and scripts to install and automate bosh environment on aws.
 ## Automation ##
 
 ### Bootstrap with Terraform ### 
+ 
 * [Detailed Instructions](AUTOMATION.md)
 
 ### Orchestrate Deployments ###

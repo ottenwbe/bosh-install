@@ -1,18 +1,20 @@
-resource "aws_instance" "bosh-inception" {
+resource "aws_instance" "jumphost" {
   ami = "${lookup(var.amis, var.region)}"
   instance_type = "t2.micro"
   subnet_id = "${aws_subnet.public.id}"
   security_groups = ["${aws_security_group.bosh-inception.id}"]
   key_name = "${aws_key_pair.deployer.key_name}"
 
+  depends_on = ["aws_instance.nat"]
+
   provisioner "local-exec" {
-    command = "echo  ${aws_instance.bosh-inception.public_dns} > dns-info.txt"
+    command = "echo  ${aws_instance.jumphost.public_dns} > dns-info.txt"
   }
 
   provisioner "file" {
     connection {
       user = "ubuntu"
-      host = "${aws_instance.bosh-inception.public_dns}"
+      host = "${aws_instance.jumphost.public_dns}"
       timeout = "1m"
       private_key = "${file("insecure-deployer")}"
     }
@@ -23,7 +25,7 @@ resource "aws_instance" "bosh-inception" {
   provisioner "file" {
     connection {
       user = "ubuntu"
-      host = "${aws_instance.bosh-inception.public_dns}"
+      host = "${aws_instance.jumphost.public_dns}"
       timeout = "1m"
       private_key = "${file("insecure-deployer")}"
     }
@@ -34,7 +36,7 @@ resource "aws_instance" "bosh-inception" {
   provisioner "remote-exec" {
     connection {
       user = "ubuntu"
-      host = "${aws_instance.bosh-inception.public_dns}"
+      host = "${aws_instance.jumphost.public_dns}"
       timeout = "25m"
       private_key = "${file("insecure-deployer")}"
     }
