@@ -2,10 +2,11 @@ resource "aws_instance" "jumphost" {
   ami = "${lookup(var.amis, var.region)}"
   instance_type = "t2.micro"
   subnet_id = "${aws_subnet.public.id}"
-  security_groups = ["${aws_security_group.bosh-inception.id}"]
+  security_groups = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}"]
   key_name = "${aws_key_pair.deployer.key_name}"
 
-  depends_on = ["aws_instance.nat"]
+  /* ensure that nat instance and network are up and running */
+  depends_on = ["aws_instance.nat","aws_subnet.bosh_director"]
 
   provisioner "local-exec" {
     command = "echo  ${aws_instance.jumphost.public_dns} > dns-info.txt"
@@ -14,7 +15,7 @@ resource "aws_instance" "jumphost" {
   provisioner "file" {
     connection {
       user = "ubuntu"
-      host = "${aws_instance.jumphost.public_dns}"
+      host = "${aws_instance.jumphost.public_dns}",
       timeout = "1m"
       private_key = "${file("insecure-deployer")}"
     }
@@ -45,7 +46,8 @@ resource "aws_instance" "jumphost" {
       "./install.sh ${var.bosh_subnet_cidr} ${var.bosh_gw} ${var.bosh_ip} ${var.access_key} ${var.secret_key} ${aws_subnet.bosh_director.id} ~/bosh.pem"
     ]
   }
+
   tags = {
-    Name = "bosh-inception-vm-${count.index}"
+    Name = "jumphost-vm-${count.index}"
   }
 }

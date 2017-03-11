@@ -2,7 +2,7 @@
 
 set +e
 
-cd terraform_bootstrap
+cd bootstrap
 
 # Generate keys for rollout and bosh
 mkdir -p ssh
