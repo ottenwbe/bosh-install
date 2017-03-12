@@ -21,7 +21,7 @@ We will come back to the individual tools when we need them.
 | Dependendcy  | URL |
 |---|---|
 | Bosh  | http://bosh.io  |
-| Terraform  |  http://bosh.io  |
+| Terraform  |  http://terraform.io |
 | UAA  |  https://github.com/cloudfoundry/uaa |   
 | Bosh Deployment  | https://github.com/cloudfoundry/bosh-deployment  |
 
@@ -53,13 +53,13 @@ We will come back to the individual tools when we need them.
     secret_key=..." >> terraform.tfvars
     ```
     
- 1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxilluary nat instance will be rolled out. 
+1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxilluary nat instance will be rolled out. 
  
     ```bash
     ./rollout.sh
     ```
 
- 2. To destroy you environment 
+1. To destroy your environment 
 
     ```bash
     ./destroy.sh
@@ -100,7 +100,7 @@ __WIP__
         └── variables.tf       
     ```
     
-    1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already
+1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already
 
     ```bash
     curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
