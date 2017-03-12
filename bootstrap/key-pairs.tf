@@ -1,9 +1,12 @@
+/** key for deployment of jumpbox and nat */
 resource "aws_key_pair" "deployer" {
-  key_name = "deployer-key"
-  public_key = "${file("insecure-deployer.pub")}"
+  key_name   = "deployer"
+  public_key = "${file("ssh/deployer.pub")}"
 }
 
-/*resource "aws_key_pair" "bosh" {
+/** key for bosh */
+resource "aws_key_pair" "bosh" {
   key_name = "bosh"
-  public_key = "${file("bosh.pub")}"
-}*/
+  public_key = "${file("ssh/bosh.pub")}"
+}
+

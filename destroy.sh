@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 
-ssh -i insecure-deployer ubuntu@$(terraform output bosh_dns) date
+cd bootstrap
+
+scp -i ssh/deployer.pem bin/delete.sh ubuntu@$(terraform output jumpbox_dns):/home/ubuntu/
+ssh -i ssh/deployer.pem ubuntu@$(terraform output jumpbox_dns) chmod +x delete.sh; ./delete.sh

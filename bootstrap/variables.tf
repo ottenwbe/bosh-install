@@ -1,29 +1,33 @@
+/** Access key. NOTE: DO NOT CHECK IN */
 variable "access_key" {
   description = "Access Key"
 }
 
+/** Secret key. NOTE: DO NOT CHECK IN */
 variable "secret_key" {
   description = "Secret Access"
 }
 
-variable "default_az"     {
+/** AZ which is used by default during the deployment */
+variable "default_az" {
   description = "Default AZ"
   default     = "eu-central-1a"
 }
 
-variable "region"     {
+/** Region which is used by default during te rollout */
+variable "region" {
   description = "AWS region to host the bosh network"
   default     = "eu-central-1"
 }
 
 variable "vpc_gw" {
-  description = "GW"
-  default = "10.128.0.1"
+  description = "GW for the vpc"
+  default     = "10.128.0.1"
 }
 
 variable "bosh_gw" {
-  description = "GW"
-  default = "10.128.1.1"
+  description = "GW for the bosh network"
+  default     = "10.128.1.1"
 }
 
 variable "vpc_cidr" {
@@ -48,8 +52,9 @@ variable "public_subnet_cidr" {
 
 /* Ubuntu amis by region */
 variable "amis" {
-  type = "map"
-  description = "Base AMI to launch the inception vm"
+  type        = "map"
+  description = "Base AMI to launch the vms"
+
   default = {
     eu-central-1 = "ami-829145ed"
   }
