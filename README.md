@@ -53,7 +53,7 @@ We will come back to the individual tools when we need them.
     secret_key=..." >> terraform.tfvars
     ```
     
-1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxilluary nat instance will be rolled out. 
+1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxiliary nat instance will be rolled out. 
  
     ```bash
     ./rollout.sh
