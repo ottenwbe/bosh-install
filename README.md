@@ -34,6 +34,47 @@ We will come back to the individual tools when we need them.
     git clone https://github.com/ottenwbe/bosh-install.git
     cd bosh-install
     ```
+
+1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already
+
+    ```bash
+    curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
+    sudo unzip terraform.zip -d /opt/terraform
+    sudo ln -s /opt/terraform/terraform /usr/bin/terraform
+    rm -f terraform.zip
+    ```
+
+1. Create a ```terraform.tfvars``` file in the src directory which includes your AWS Key and Secret Key 
+   
+    ```bash
+    cd src
+    touch terraform.tfvars
+    echo "access_key=...
+    secret_key=..." >> terraform.tfvars
+    ```
+    
+ 1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxilluary nat instance will be rolled out. 
+ 
+    ```bash
+    ./rollout.sh
+    ```
+
+ 2. To destroy you environment 
+
+    ```bash
+    ./destroy.sh
+    ```
+    
+## Detailed Guide ##
+
+__WIP__
+
+1. Clone the git repository of this guide, which provides all required terraform HCL files.
+    
+    ```bash
+    git clone https://github.com/ottenwbe/bosh-install.git
+    cd bosh-install
+    ```
     
     The following outline gives a brief glimpse at the most important files:
     
@@ -59,48 +100,7 @@ We will come back to the individual tools when we need them.
         └── variables.tf       
     ```
     
-1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already
-
-    ```bash
-    curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
-    sudo unzip terraform.zip -d /opt/terraform
-    sudo ln -s /opt/terraform/terraform /usr/bin/terraform
-    rm -f terraform.zip
-    ```
-
-1. Create a ```terraform.tfvars``` file in the src directory which includes your AWS Key and Secret Key 
-   
-    ```bash
-    cd src
-    touch terraform.tfvars
-    echo "access_key=...
-    secret_key=..." >> terraform.tfvars
-    ```
-    
- 1. Execute the rollout script to 
-
-    ```bash
-    ./rollout.sh
-    ```
-
- 2. To destroy you environment 
-
-    ```bash
-    ./destroy.sh
-    ```
-    
-## Detailed Guide ##
-
-__WIP__
-
-1. Clone the git repository of this guide, which provides all required terraform HCL files.
-    
-    ```bash
-    git clone https://github.com/ottenwbe/bosh-install.git
-    cd bosh-install
-    ```
-    
-1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already
+    1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already
 
     ```bash
     curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
