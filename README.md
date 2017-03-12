@@ -1,5 +1,7 @@
 # Tutorial: Deploy BOSH and UAA on AWS with Terraform #
 
+[![Build Status](https://travis-ci.org/ottenwbe/bosh-install.svg?branch=master)](https://travis-ci.org/ottenwbe/bosh-install)
+
 __NOTE: This tutorial and all scripts are still WIP!__
 
 This guide explains how to setup a bosh environment on AWS with terraform.
