@@ -9,5 +9,5 @@ install:
   - rm -f terraform.zip
 
 script:
-- cd bootstrap
+- cd src
 - terraform validate

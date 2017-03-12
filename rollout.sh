@@ -6,7 +6,11 @@ deployer_key="deployer"
 deployer_path=ssh/${deployer_key}
 deployer_pem="${deployer_path}.pem"
 
-cd bootstrap
+bosh_key="bosh"
+bosh_path=ssh/${bosh_key}
+bosh_pem="${bosh_path}.pem"
+
+cd src
 
 # Generate keys for the rollout (deployer.pem/pub) and the bosh rollout (bosh.pub/.pem) in the sub directory ssh
 mkdir -p ssh
@@ -16,11 +20,11 @@ then
     mv ${deployer_path} ${deployer_pem}
     chmod 400 ${deployer_pem}
 fi
-if [ ! -f ssh/bosh.pem  ]
+if [ ! -f ${bosh_pem}  ]
 then
-    ssh-keygen -t rsa -C "bosh" -P '' -f ssh/bosh -b 4096
-    mv ssh/bosh ssh/bosh.pem
-    chmod 400 ssh/bosh.pem
+    ssh-keygen -t rsa -C "${bosh_key}" -P '' -f ${bosh_path} -b 4096
+    mv ${bosh_path} ${bosh_pem}
+    chmod 400 ${bosh_pem}
 fi
 
 # Deploy the nat instance, jumpbox instance with terraform; moreover trigger the script to create a bosh director
