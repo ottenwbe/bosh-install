@@ -37,7 +37,7 @@ An IaaS automation tool. It allows you to define your own infrastructure (networ
 
 ## What is our Target Environment? ##
 
-<img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="400">
+<img src="http://github.com/ottenwbe/bosh-install/blob/master/res/infrastructure.pdf" alt="infrastructure"  width="800" height="400">
 
 ___TODO: explain the setup with a figure___
 
