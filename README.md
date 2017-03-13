@@ -4,14 +4,14 @@
 
 __NOTE: This tutorial and all scripts are still WIP!__
 
-This guide explains how you can setup a bosh environment on AWS with terraform.
+In this guide I explain how you can setup a bosh environment on AWS with terraform.
 For those interested in deploying bosh manually, I provide an additional guide (see [Manual Deployment](MANUAL.md)).
 
-## NOTE ##
+## A Word of Caution ##
 
 Before you follow this guide you should be aware that you will create real resources on AWS. 
-In particular, the guide requires more resources than included in Amazon's free tier. 
-Obviously, I will not provide compensation for any of the costs for the resources.  
+In particular, the guide requires that you deploy more resources than included in Amazon's free tier, i.e., two t2.small and one m3.xlarge instance. 
+Obviously, I will not provide compensation for any costs.  
 
 ## Dependencies ##
 
@@ -19,14 +19,25 @@ The guide will make use of the following software components.
 No worries, you do not need to install them right now.
 We come back to the individual tools when we need them.
 
-| Dependendcy  | URL | Purpose |
+| Component  | URL | Purpose |
 |---|---|---|
-| Bosh  | http://bosh.io  | Orchestration of services |
-| Terraform  |  http://terraform.io | Orchestration of the IaaS |
-| UAA  |  https://github.com/cloudfoundry/uaa | User management |   
-| Bosh Deployment  | https://github.com/cloudfoundry/bosh-deployment  | Templates for the deployment of bosh |
+| Bosh  | http://bosh.io  | The service we want to deploy on AWS |
+| Terraform  |  http://terraform.io | Bootstrapping of the bosh infrastructure |
+| UAA  |  https://github.com/cloudfoundry/uaa | (Optional) User management for bosh |   
+| Bosh Deployment  | https://github.com/cloudfoundry/bosh-deployment  | Bosh templates for the deployment of bosh |
+
+### What is Bosh? ###
+
+Bosh is a tool to orchestrate services in the cloud. 
+It supports you in the release engineering, deployment, and lifecycle management of cloud software.
+
+### What is Terraform ###
+
+An IaaS automation tool. It allows you to define your own infrastructure (network, compute, storage, ...) as code.
 
 ## What is our Target Environment? ##
+
+<img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="400">
 
 ___TODO: explain the setup with a figure___
 
