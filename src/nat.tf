@@ -3,7 +3,7 @@ resource "aws_instance" "nat" {
   ami                         = "${lookup(var.amis, var.region)}"
   availability_zone           = "${var.default_az}"
   instance_type               = "t2.micro"
-  vpc_security_group_ids      = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
   subnet_id                   = "${aws_subnet.public.id}"
   associate_public_ip_address = true
   source_dest_check           = false

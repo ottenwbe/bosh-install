@@ -31,15 +31,22 @@ We come back to the individual tools when we need them.
 Bosh is a tool to orchestrate services in the cloud. 
 It supports you in the release engineering, deployment, and lifecycle management of cloud software.
 
-### What is Terraform ###
+### What is Terraform? ###
 
 An IaaS automation tool. It allows you to define your own infrastructure (network, compute, storage, ...) as code.
 
-## What is our Target Environment? ##
+## Target Environment ##
 
-<img src="http://github.com/ottenwbe/bosh-install/blob/master/res/infrastructure.pdf" alt="infrastructure"  width="800" height="400">
+<img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="600inch">
 
-___TODO: explain the setup with a figure___
+The jumpbox instance can be accessed by you via ssh and has all tools to manage bosh and UAA already installed.
+The jupbox is therefore placed in a public network.
+
+The bosh director is placed in a private network and cannot be accessed from the Internet.
+
+The NAT instance allows our bosh director to access the internet although the latter is place in the private network.
+
+
 
 ## Quickstart for the Impatient ##
 
@@ -100,7 +107,7 @@ cd bosh-install
     
 The following outline gives a brief glimpse at the most important files:
     
-```bash    
+```    
 ├── destroy.sh                  Script to cleanup the environment on AWS
 ├── rollout.sh                  Script to rollout the environment on AWS
 └── src                         All terraform resources and corresponding scripts
@@ -135,7 +142,7 @@ rm -f terraform.zip
 
 Create a local file ```terraform.tfvars``` to hold your aws credentials. Otherwise you have to retype the credentials with every change.
 
-```
+```bash
 cd src
 touch terraform.tfvars
 echo "access_key=...
@@ -148,6 +155,166 @@ This also means, if you do not want to keep your credentials in a file, you have
 ### The One with the Infrastructure as Code ###
 
 ___TODO___
+
+#### The VPC ###
+
+```hcl-terraform
+provider "aws" {
+  access_key = "${var.access_key}"
+  secret_key = "${var.secret_key}"
+  region     = "${var.region}"
+}
+
+resource "aws_vpc" "default" {
+  cidr_block           = "${var.vpc_cidr}"
+  enable_dns_hostnames = true
+
+  tags {
+    Name = "bosh-terraform-vpc"
+  }
+}
+```
+
+#### Security Groups ###
+
+```hcl-terraform
+resource "aws_security_group" "ssh" {
+  name        = "ssh"
+  description = "SSH access to instances from the internet"
+  vpc_id      = "${aws_vpc.default.id}"
+  
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+
+  tags {
+    Name = "ssh sg"
+  }
+
+}
+
+/* Security group for the nat instance */
+resource "aws_security_group" "vpc_nat" {
+  name        = "vpc_nat"
+  description = "Allow traffic to pass from the private subnet to the internet"
+  vpc_id      = "${aws_vpc.default.id}"
+  
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "NATSG"
+  }
+}
+
+resource "aws_security_group" "bosh" {
+  name        = "bosh"
+  description = "Security group for bosh vms"
+  vpc_id      = "${aws_vpc.default.id}"
+
+  ingress {
+    from_port = "0"
+    to_port   = "0"
+    protocol  = "-1"
+    self      = true
+  }
+
+  egress {
+    from_port = "0"
+    to_port   = "0"
+    protocol  = "-1"
+    self      = true
+  }
+
+  tags {
+    Name = "bosh sg"
+  }
+}
+```
+
+#### Subnets ###
+
+```hcl-terraform
+/** internet access */
+resource "aws_internet_gateway" "default" {
+  vpc_id = "${aws_vpc.default.id}"
+}
+
+/** public subnet for the nat instance and the jumpbox */
+resource "aws_subnet" "public" {
+  vpc_id                  = "${aws_vpc.default.id}"
+  cidr_block              = "${var.public_subnet_cidr}"
+  availability_zone       = "${var.default_az}"
+  map_public_ip_on_launch = true
+  depends_on              = ["aws_internet_gateway.default"]
+
+  tags {
+    Name = "public-net"
+  }
+}
+
+/** private network for the bosh managed vms */
+resource "aws_subnet" "bosh" {
+  vpc_id                  = "${aws_vpc.default.id}"
+  cidr_block              = "${var.bosh_subnet_cidr}"
+  availability_zone       = "${var.default_az}"
+  map_public_ip_on_launch = false
+  depends_on              = ["aws_instance.nat"]
+
+  tags {
+    Name = "bosh-net"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = "${aws_vpc.default.id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.default.id}"
+  }
+}
+
+resource "aws_route_table" "bosh" {
+  vpc_id = "${aws_vpc.default.id}"
+
+  route {
+    cidr_block  = "0.0.0.0/0"
+    instance_id = "${aws_instance.nat.id}"
+  }
+
+  tags {
+    Name = "Private Subnet"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = "${aws_subnet.public.id}"
+  route_table_id = "${aws_route_table.public.id}"
+}
+
+resource "aws_route_table_association" "bosh" {
+  subnet_id      = "${aws_subnet.bosh.id}"
+  route_table_id = "${aws_route_table.bosh.id}"
+}
+```
 
 ### Putting it a all together ###
 

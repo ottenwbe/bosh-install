@@ -6,7 +6,6 @@ resource "aws_key_pair" "deployer" {
 
 /** key for bosh */
 resource "aws_key_pair" "bosh" {
-  key_name = "bosh"
+  key_name   = "bosh"
   public_key = "${file("ssh/bosh.pub")}"
 }
-

@@ -1,23 +1,29 @@
-//TODO: move ssh to seperate sg
+resource "aws_security_group" "ssh" {
+  name        = "ssh"
+  description = "SSH access to instances from the internet"
 
-/* Security group for the nat server */
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+
+  vpc_id = "${aws_vpc.default.id}"
+
+  tags {
+    Name = "ssh sg"
+  }
+
+}
+
+/* Security group for the nat instance */
 resource "aws_security_group" "vpc_nat" {
   name        = "vpc_nat"
   description = "Allow traffic to pass from the private subnet to the internet"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   egress {
     from_port   = 80
@@ -30,13 +36,6 @@ resource "aws_security_group" "vpc_nat" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

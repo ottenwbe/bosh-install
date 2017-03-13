@@ -2,7 +2,7 @@ resource "aws_instance" "jumpbox" {
   ami             = "${lookup(var.amis, var.region)}"
   instance_type   = "t2.micro"
   subnet_id       = "${aws_subnet.public.id}"
-  security_groups = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}"]
+  security_groups = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
   key_name        = "${aws_key_pair.deployer.key_name}"
 
   /* ensure that nat instance and network are up and running */
