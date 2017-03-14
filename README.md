@@ -596,7 +596,7 @@ First it means waiting for aroutn 10-15 minutes.
 Then you should be able to access the jumpbox and simply test your bosh director.
 
 ```bash
-ssh -i src/ssh/deployer.pem ubuntur@$(terraform output jumpbox_ip)
+ssh -i src/ssh/deployer.pem ubuntur@$(terraform output jumpbox_dns)
 ```
 
 ### Cleaning Up ###
@@ -682,7 +682,11 @@ bosh -e bosh-1 delete-env ~/workspace/bosh-deployment/bosh.yml \
 
 As a last step make sure that everything is cleaned up in your AWS console. 
 If some resources are still left, the best approach is to delete the vpc.
- 
+
+## What is missing ##
+
+* First and foremost tests! 
+
 ## Thanks for Reading ##
 I hope you enjoyed the guide.
 Until next time.
