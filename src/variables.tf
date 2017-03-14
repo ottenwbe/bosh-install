@@ -22,32 +22,32 @@ variable "region" {
 
 variable "vpc_gw" {
   description = "GW for the vpc"
-  default     = "10.128.0.1"
+  default     = "10.0.0.1"
 }
 
 variable "bosh_gw" {
   description = "GW for the bosh network"
-  default     = "10.128.1.1"
+  default     = "10.0.1.1"
 }
 
 variable "vpc_cidr" {
   description = "CIDR for VPC"
-  default     = "10.128.0.0/16"
+  default     = "10.0.0.0/16"
 }
 
 variable "bosh_ip" {
   description = "BOSH Director IP"
-  default     = "10.128.1.6"
+  default     = "10.0.1.6"
 }
 
 variable "bosh_subnet_cidr" {
   description = "CIDR for bosh subnet"
-  default     = "10.128.1.0/24"
+  default     = "10.0.1.0/24"
 }
 
 variable "public_subnet_cidr" {
   description = "CIDR for public subnet"
-  default     = "10.128.0.0/24"
+  default     = "10.0.0.0/24"
 }
 
 /* Ubuntu amis by region */
