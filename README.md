@@ -35,10 +35,11 @@ We come back to the individual tools when we need them.
 | Terraform  |  http://terraform.io | Bootstrapping of the bosh infrastructure |
 | UAA  |  https://github.com/cloudfoundry/uaa | (Optional) User management for bosh |   
 | Bosh Deployment  | https://github.com/cloudfoundry/bosh-deployment  | Bosh templates for the deployment of bosh |
+| Bosh Dummy Release  | https://github.com/pivotal-cf-experimental/dummy-boshrelease  | Release for testing bosh |
 
 ## Target Environment ##
 
-<img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="600inch">
+<img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="600inch" class=inline>
 
 In our target state you will have rolled out two VMs with terraform 
 a _jumpbox_ and a _nat instance_. Moreover, you will rollout with 
@@ -114,7 +115,7 @@ We now want to take a deeper look into the setup.
     rm -f terraform.zip
     ```
 
-1. Create an IAM user in your AWS console. There are several good tutorials out there that can help you here, e.g., https://bosh.io/docs/aws-iam-users.html#create
+1. Create an IAM user in your AWS console. There are several good tutorials out there that can help you with that, e.g., https://bosh.io/docs/aws-iam-users.html#create
 
 1. Create a local file ```terraform.tfvars``` to hold your aws credentials. Otherwise you have to retype the credentials with every change.
 
@@ -150,7 +151,7 @@ The following outline gives you a brief glimpse at the project outline that I an
     ├── outputs.tf              Useful outputs, i.e., for the cleanup (destroy.sh)
     └── variables.tf       
 ```
-
+h
 You can always have a peek at a reference implementation of our environment when you clone  the git repository of this guide.
     
 ```bash
@@ -165,6 +166,7 @@ The whole infrastructure is defined in Hashicorp's HCL.
 #### Variables ###
 
 At first we define some basic variables in ```variables.tf```. We can reference them later in other terraform files.
+Here we are mostly concerned with the ips and ip ranges for the different subnets
 
 ```hcl
 /** Access key. NOTE: DO NOT DECLARE YOUR ACTUAL KEY HERE */
@@ -234,12 +236,11 @@ variable "amis" {
 
 ```
 
-
 #### The VPC ###
 
 At first we have to define our provider (aws) and the virtual private cloud (vpc).
-In our example this is defined in ```aws-vpc.tf```.
-As you can see in the code snippet below we simply reference variables defined in our variables.tf.
+In our example this is defined in the file ```aws-vpc.tf```.
+As you can see in the code snippet below, we simply reference variables defined in our variables.tf.
 
 ```hcl
 provider "aws" {
@@ -260,8 +261,8 @@ resource "aws_vpc" "default" {
 
 #### Security Groups ###
 
-We now have to define our firewall rules, e.g., to define which inbound traffic is allowed. This is done with security groups. You can associate the firewall rules to vms in order to make them effective on the vm.
-We define three security groups. First, the ```ssh``` group which allows inbound ssh traffic from the all destinations in the internet.
+We now define our firewall rules, e.g., to define which inbound/outbound traffic is allowed. This is done with security groups. You can associate the firewall rules to vms in order to make them effective on the vm.
+In particular, we define three security groups. First, the ```ssh``` group which allows inbound ssh traffic from the all destinations in the internet.
 Second, a ```nat``` rule, which allows http(s) traffic to servers outside of your vpc.
 Third, an any-to-any connection for all ```bosh``` instances. For improved security you can always add more finegranular rules here.
 
@@ -339,7 +340,7 @@ resource "aws_security_group" "bosh" {
 
 #### Subnets ###
 
-We now define our networking in the ```subnets.tf```, including the gateway to the internet.
+We now define our networks in the ```subnets.tf```, including the gateway to the internet.
 We also define our two networks. The public network for the internet facing systems, i.e., the nat instance and the 
 jumpbox and the private network for bosh. Routing tables ensure that the traffic from the private network towards the internet
 is routed over the nat instance.
@@ -411,10 +412,17 @@ resource "aws_route_table_association" "bosh" {
 
 ### The instances ###
 
-We now also define the jumpbox and nat instance. Also, we define
- a public IP for the nat instance. 
- For now ignore the fact that no software is installed on the machines. 
+We now also define the __jumpbox__ and __nat instance__.  
+Both instances will select the ami for eu-central and are of type t2.micro.
+Both instances are also placed in the public subnet.
  
+A cool thing about security groups is tht you can mix and match them as needed when associating them to insatances. To this end,
+the jumpbox can be accessed via ssh and communicate with the bosh instances.
+
+Note that we declare an explicit relation between the instances with the depends on ```depends_on```.
+The nat instance will be spun up before the jumpbox.
+
+For now, ignore the fact that we left out the provisioners and no software is installed on the machines.
 
 ```hcl-terraform
 /** jumpbox instance */
@@ -429,12 +437,10 @@ resource "aws_instance" "jumpbox" {
   depends_on = ["aws_instance.nat", "aws_subnet.bosh"]
 
 /**
-  provisioners ...
-*/
-
-  tags = {
-    Name = "jumphost-vm-${count.index}"
+  provisioners "remote-exec" {
+    ...
   }
+*/
 }
 
 /** nat instance */
@@ -465,7 +471,9 @@ resource "aws_eip" "nat" {
 
 #### Provisioners ####
 
-Jumpbox provisioner
+Provisioners allow us to install software during the creation of instances. 
+For the jumpbox we first copy required files (a ssh key and a script) to the instance.
+Then we execute the ```install.sh``` script, which infact will spin up our bosh-director.
 
 ```hcl-terraform
   /** copy the bosh key to the jumpbox */
@@ -481,6 +489,7 @@ Jumpbox provisioner
     destination = "/home/ubuntu/.ssh/bosh.pem"
   }
 
+  /** copy the script */
   provisioner "file" {
     connection {
       user        = "ubuntu"
@@ -493,6 +502,7 @@ Jumpbox provisioner
     destination = "/home/ubuntu/install.sh"
   }
 
+  /** Execute the script */
   provisioner "remote-exec" {
     connection {
       user        = "ubuntu"
@@ -508,9 +518,9 @@ Jumpbox provisioner
   }
 ```
 
-#### Jumpbox ####
+On the nat instance, we simply update the operating system and change the iptables. The latter allows the machine to route traffic
+from a bosh to the internet.
 
-Nat provisioner:
 ```hcl-terraform
   provisioner "remote-exec" {
     connection {
@@ -528,16 +538,152 @@ Nat provisioner:
   }
 ```
 
+### Installing bosh ###
+
+The ```install.sh``` script will then execute the following on the jumpbox:
+1. Update the jumpbox instances operating system
+1. Download and install the bosh cli (v2)
+1. Clone the bosh deployment repository
+1. With help of the bosh deployment and the bosh cli, the script rolls out a director
+1. A cloud config will be generated and uploaded
+1. A stemcell will be uploaded
+1. A dummy release will be uploaded for testing purposes.
+
 ### Putting it a all together ###
 
-Execute the rollout script which triggers the deployment.
+Execute the ```./rollout.sh``` script which triggers terraform and the rollout of the environment.
+As an important step in the rollout, we also generate key pairs.
+
+```bash
+#!/usr/bin/env bash
+
+set +e
+
+deployer_key="deployer"
+deployer_path=ssh/${deployer_key}
+deployer_pem="${deployer_path}.pem"
+
+bosh_key="bosh"
+bosh_path=ssh/${bosh_key}
+bosh_pem="${bosh_path}.pem"
+
+cd src
+
+# Generate keys for the rollout (deployer.pem/pub) and the bosh rollout (bosh.pub/.pem) in the sub directory ssh
+mkdir -p ssh
+if [ ! -f ${deployer_pem}  ]
+then
+    ssh-keygen -t rsa -C "${deployer_key}" -P '' -f ${deployer_path} -b 4096
+    mv ${deployer_path} ${deployer_pem}
+    chmod 400 ${deployer_pem}
+fi
+if [ ! -f ${bosh_pem}  ]
+then
+    ssh-keygen -t rsa -C "${bosh_key}" -P '' -f ${bosh_path} -b 4096
+    mv ${bosh_path} ${bosh_pem}
+    chmod 400 ${bosh_pem}
+fi
+
+# Deploy the nat instance, jumpbox instance with terraform; moreover trigger the script to create a bosh director
+terraform plan --out=plan
+terraform apply plan
 
 ```
-./rollout.sh
+
+### What now? ###
+
+First it means waiting for aroutn 10-15 minutes.
+Then you should be able to access the jumpbox and simply test your bosh director.
+
+```bash
+ssh -i src/ssh/deployer.pem ubuntur@$(terraform output jumpbox_ip)
 ```
 
 ### Cleaning Up ###
 
+You can clean up everything by calling the ```./destroy.sh``` script.
+As you can see, we rely on the outputs from our terraform deployment earlier and the aws keys in terraform.tfvars to fetch all
+relevant parameters for the destruction.
+With those information we can ssh to the jumpbox in order to delete the bosh-director.
+The terraform destroy command will cleanup the rest for us.
+
 ```bash
-./destroy.sh
+#!/usr/bin/env bash
+
+set +e
+
+cd src
+
+# Use the output of terraform as configuration for the destroy process
+jumpbox_dns=$(terraform output jumpbox_dns)
+internal_cidr=$(terraform output bosh_subnet_cidr)
+internal_gw=$(terraform output bosh_gw)
+subnet_id=$(terraform output bosh_subnet)
+bosh_ip=$(terraform output bosh_ip)
+# Read the aws access key and secret key
+while read -r line; do declare $line; done <terraform.tfvars
+
+# Destroy the bosh director by sshing to the jumpbox
+scp -oStrictHostKeyChecking=no -i ssh/deployer.pem bin/delete.sh ubuntu@${jumpbox_dns}:/home/ubuntu/
+ssh -oStrictHostKeyChecking=no -i ssh/deployer.pem ubuntu@${jumpbox_dns} << EOF
+  echo "Will destroy the bosh director now"
+  chmod +x delete.sh
+  ./delete.sh "${internal_cidr}" "${internal_gw}" "${bosh_ip}" ${access_key} ${secret_key} "${subnet_id}"  ~/.ssh/bosh.pem
+EOF
+
+# Destroy the terraform resources
+terraform destroy -force
 ```
+
+On the jumpbox the destroy script will call the ```delete.sh``` script.
+This uses the bosh cli to destroy the bosh director.
+
+```bash
+#!/usr/bin/env bash
+
+set +e
+
+internal_cidr=$1
+internal_gw=$2
+internal_ip=$3
+access_key_id=$4
+secret_access_key=$5
+subnet_id=$6
+private_key_file=$7
+
+cd ~/deployments/bosh-master
+
+echo "-- Log in to the Director --"
+export BOSH_CLIENT=admin
+export BOSH_CLIENT_SECRET=`bosh int ./creds.yml --path /admin_password`
+
+echo "-- Alias the deployed Director --"
+bosh -e ${internal_ip} --ca-cert <(bosh int ./creds.yml --path /director_ssl/ca) alias-env bosh-1
+
+echo "-- Destroying bosh env --"
+bosh -e bosh-1 delete-env ~/workspace/bosh-deployment/bosh.yml \
+  --state ./state.json \
+  -o ~/workspace/bosh-deployment/aws/cpi.yml \
+  -o ~/workspace/bosh-deployment/uaa.yml \
+  --vars-store ./creds.yml \
+  -v director_name=bosh-master-director \
+  -v internal_cidr=${internal_cidr} \
+  -v internal_gw=${internal_gw} \
+  -v internal_ip=${internal_ip} \
+  -v access_key_id=${access_key_id} \
+  -v secret_access_key=${secret_access_key} \
+  -v az=eu-central-1a \
+  -v region=eu-central-1 \
+  -v default_key_name=bosh \
+  -v default_security_groups=[bosh] \
+  -v subnet_id=${subnet_id} \
+  --var-file private_key=${private_key_file}
+```
+
+As a last step make sure that everything is cleaned up in your AWS console. 
+If some resources are still left, the best approach is to delete the vpc.
+ 
+## Thanks for Reading ##
+I hope you enjoyed the guide.
+Until next time.
+

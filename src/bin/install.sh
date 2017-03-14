@@ -59,7 +59,7 @@ export BOSH_CLIENT_SECRET=`bosh int ./creds.yml --path /admin_password`
 # Alias the deployed Director
 bosh -e ${internal_ip} --ca-cert <(bosh int ./creds.yml --path /director_ssl/ca) alias-env bosh-1
 
-# Update cloud config -- single az
+echo "-- Update cloud config with a single az "
 bosh -n -e bosh-1 update-cloud-config ~/workspace/bosh-deployment/aws/cloud-config.yml \
   -v az=eu-central-1a \
   -v subnet_id=${subnet_id} \
@@ -68,3 +68,6 @@ bosh -n -e bosh-1 update-cloud-config ~/workspace/bosh-deployment/aws/cloud-conf
 
 # Upload an initial stemcell
 bosh -e bosh-1 upload-stemcell ${stemcell_url}
+
+echo "-- Upload Release --"
+bosh -e bosh-1 upload-release https://github.com/pivotal-cf-experimental/dummy-boshrelease/releases/download/v2/dummy-2.tgz
