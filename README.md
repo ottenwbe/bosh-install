@@ -527,7 +527,8 @@ Then we execute the ```install.sh``` script, which in fact will spin up our bosh
   }
 ```
 
-On the nat instance, we simply update the operating system and change the iptables. The latter allows the machine to route traffic
+On the NAT instance, the example simply updates the operating system and changes 
+the iptables. The latter allows the instance to route traffic
 from a bosh to the internet.
 
 ```hcl-terraform
@@ -551,9 +552,56 @@ from a bosh to the internet.
 
 The ```install.sh``` script will then execute the following on the jumpbox:
 1. Update the jumpbox instances operating system
-1. Download and install the bosh cli (v2)
+    ```bash
+    sudo apt -y update
+    sudo apt -y upgrade
+    sudo apt -y install git gcc make ruby zlibc zlib1g-dev ruby-bundler ruby-dev build-essential patch libssl-dev bison openssl libreadline6 libreadline6-dev curl git-core libssl-dev libyaml-dev libxml2-dev autoconf libc6-dev ncurses-dev automake libtool 
+    ```
+
+1. Install the uaac
+    ```bash
+    sudo gem install cf-uaac 
+    ```
+
 1. Clone the bosh deployment repository
-1. With help of the bosh deployment and the bosh cli, the script rolls out a director
+    ```bash
+    git clone https://github.com/cloudfoundry/bosh-deployment ~/workspace/bosh-deployment
+    ```
+
+1. Download and install the bosh cli (v2)
+    ```bash
+    curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.1-linux-amd64
+    chmod ugo+x bosh-cli-2.0.1-linux-amd64
+    sudo mv bosh-cli-2.0.1-linux-amd64 /usr/local/bin/bosh
+    ```
+    
+1. With help of the bosh deployment and the bosh cli, the script rolls out a director.
+    The parameters internal_cidr ff are the inputs given by the remote_exec provisioner.
+    
+    ```bash
+    mkdir -p ~/deployments/bosh-master    
+    cd ~/deployments/bosh-master
+ 
+    bosh create-env ~/workspace/bosh-deployment/bosh.yml \
+      --state ./state.json \
+      -o ~/workspace/bosh-deployment/aws/cpi.yml \
+      -o ~/workspace/bosh-deployment/uaa.yml \
+      --vars-store ./creds.yml \
+      -v director_name=bosh-master-director \
+      -v internal_cidr=${internal_cidr} \
+      -v internal_gw=${internal_gw} \
+      -v internal_ip=${internal_ip} \
+      -v access_key_id=${access_key_id} \
+      -v secret_access_key=${secret_access_key} \
+      -v az=eu-central-1a \
+      -v region=eu-central-1 \
+      -v default_key_name=bosh \
+      -v default_security_groups=[bosh] \
+      -v subnet_id=${subnet_id} \
+      --var-file private_key=${private_key_file}
+      ```
+
+After the director is up and running, several other tasks can be executed to configure your bosh director.
 1. A cloud config will be generated and uploaded
 1. A stemcell will be uploaded
 1. A dummy release will be uploaded for testing purposes.
