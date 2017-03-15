@@ -75,7 +75,7 @@ However, this part of the guide is only recommended for those who have prior exp
     rm -f terraform.zip
     ```
     
-1. Create a ```terraform.tfvars``` file in the src directory which includes your AWS Key and Secret Key 
+1. Create a ```src/terraform.tfvars``` file in the src directory which includes your AWS Key and Secret Key 
    
     ```bash
     cd src
@@ -132,7 +132,7 @@ In order to be able to follow the guide you should prepare your local system as 
 
 1. Create an IAM user in your AWS console. There are several good tutorials out there that can help you with that, e.g., https://bosh.io/docs/aws-iam-users.html#create
 
-1. Create a local file ```terraform.tfvars``` to hold your aws credentials. Otherwise you have to retype the credentials with every change.
+1. Create a local file ```src/terraform.tfvars``` to hold your aws credentials. Otherwise you have to retype the credentials with every change.
 
     ```bash
     cd src
@@ -141,15 +141,17 @@ In order to be able to follow the guide you should prepare your local system as 
     secret_key=..." >> terraform.tfvars
     ```
 
-    We will make use of the variables. To this end, make sure that there is no whitespace in each line of terraform.tfvars.
+    You will make use of the variables when destroying then environment. To this end, make sure that there is no whitespace in each line of terraform.tfvars.
     This also means, if you do not want to keep your credentials in a file, you have to modify parts of the scripts!
 
 
 ### The One with the Infrastructure as Code ###
 
-The whole bosh infrastructure is defined in Hashicorp's HCL. In particular, 
+The whole bosh infrastructure is defined in Hashicorp's HCL. 
+In particular, 
 the vpc, network, firewalls, the jumpbox instance, and the NAT instance. 
 The bosh-director, however, will be rolled out using [bosh cli v2](https://github.com/cloudfoundry/bosh-cli).
+The following sections will describe how you can organize and define terraform files.
 
 #### Variables ###
 
@@ -245,9 +247,9 @@ resource "aws_vpc" "default" {
 
 #### Security Groups ###
 
-As a second step you need to define define which inbound/outbound traffic is allowed in the bosh environment. 
-This can be done with security groups that you define in the file ```src/security-groups.tf```. 
-We can later associate these security groups to vms in order to make them effective on the vm.
+As a second step you need to define which inbound/outbound traffic is allowed in the bosh environment. 
+This can be done with security groups that you declare in the file ```src/security-groups.tf```. 
+You will associate these security groups later to vms in order to make them effective on the vm.
 We define three security groups. First, the ```ssh``` group which allows inbound ssh traffic from the all destinations in the internet to a vm.
 
 ```hcl-terraform
