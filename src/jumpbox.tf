@@ -1,10 +1,11 @@
 /** jumpbox instance */
 resource "aws_instance" "jumpbox" {
-  ami             = "${lookup(var.amis, var.region)}"
-  instance_type   = "t2.micro"
-  subnet_id       = "${aws_subnet.public.id}"
-  security_groups = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
-  key_name        = "${aws_key_pair.deployer.key_name}"
+  ami                 = "${lookup(var.amis, var.region)}"
+  availability_zone   = "${var.default_az}"
+  instance_type       = "t2.micro"
+  subnet_id           = "${aws_subnet.public.id}"
+  vpc_security_group_ids = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
+  key_name            = "${aws_key_pair.deployer.key_name}"
 
   /* ensure that nat instance and network are up and running */
   depends_on = ["aws_instance.nat", "aws_subnet.bosh"]

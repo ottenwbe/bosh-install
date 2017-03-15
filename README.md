@@ -5,17 +5,18 @@
 __NOTE: This tutorial and all scripts are still WIP!__
 
 Modern cloud applications are inherently distributed and often need 
-to spin up large numbers of virtual machines to deploy out all required software components.
-_Bosh_ is typically the tool of choice in this scenario to orchestrate the application and/or depending software components like data bases. 
-Bosh supports an application in the release engineering, deployment, and lifecycle management.
+to spin up large numbers of virtual machines to deploy all required software components.
+_Bosh_ is often the tool of choice in these scenarios to orchestrate the application and/or depending software components like data bases. 
+Bosh supports a cloud application in the release engineering, deployment, and lifecycle management.
 
-Bosh, however, requires that you set up your basic infrastructure beforehand. You can choose to do this manually. 
-But the better approach is to rely on an IaaS automation tool like _terraform_. 
-This allows you to define your own infrastructure (network, compute, storage, ...) as code.
-Which, in turn, makes a rollout reproducible and tetable.
+To deploy bosh on [AWS](https://aws.amazon.com/), however, requires that you set up your basic infrastructure (network, firewalling, key pairs, ...) beforehand. You can choose to do this manually. 
+However, the better approach is to rely on an IaaS automation tool like _terraform_. 
+This allows you to define your AWS infrastructure as code.
+Which, in turn, makes the infrastructure configuration reproducible and testable.
 
-In this guide I explain how you can setup a bosh environment on AWS with terraform.
-For those interested in deploying bosh manually, I provide an additional guide (see [Manual Deployment](MANUAL.md)).
+In this guide I explain how you can setup a bosh environment on AWS with terraform. The environment, comprising the infrastructure
+foundation, the bosh director, and a simple bosh release, can then be installed with the execution of a shell script.
+For those interested in setting up the bosh environment manually, I provide an additional guide (see [Manual Deployment](MANUAL.md)).
 
 ## A Word of Caution ##
 
@@ -41,19 +42,17 @@ We come back to the individual tools when we need them.
 
 <img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="600inch" class=inline>
 
-In our target state you will have rolled out two VMs with terraform 
-a _jumpbox_ and a _nat instance_. Moreover, you will rollout with 
- bosh the so-called _bosh-director_. With the director, you will 
- immediately be able to rollout 
- bosh releases.
+In our target state your environment will consist of three VMs, a _jumpbox_, a _NAT instance_, and a _bosh-director_. With this setup you will immediately be able to deploy bosh releases.
 
-The jumpbox instance allows you to access
- the environment via ssh and manage your bosh deployments. 
-The jumpbox has all tools to manage bosh and UAA already installed.
-The VM is therefore placed in a public network.
+The jumpbox instance allows you to access the environment via ssh. The VM is therefore placed in a public network.
+You can think of the jumpbox as your command central. The jumpbox has all tools to manage bosh installed, including a uuac to manage the UAA.
 
-The bosh director is placed in a private network and cannot be accessed from the Internet. This is where the 
- NAT instance shines. It allows our bosh director to access the internet via http(s), but no other protocol.
+The bosh director is placed in a private network to prevent direct access from the internet to the bosh deployed vms.
+For the sake of simplicity we assume that you only want to deploy bosh releases in a private network.
+
+Ultimately this setup would prevent bosh vms from downloading additional software components, i.e., stemcells or bosh releases.
+Since the bosh director cannot be accessed from the Internet. This is where the NAT instance shines. 
+It allows our bosh director to access the internet via http(s), but no other protocol.
 
 ## Quickstart for the Impatient ##
 
@@ -99,12 +98,28 @@ However, this part of the guide is only recommended for those who have prior exp
     
 ## Detailed Guide ##
 
-__WIP__
-
-We now want to take a deeper look into the setup.
-
+Let's take a deeper look at how to automate the setup of the bosh environment.
      
 ### Preparations ###    
+
+We assume that you work on a Linux (like) environment.
+In order to be able to follow the guide you should prepare your local system as follows:
+
+1. We use the following project structure throughout the guide:
+        
+    ```
+    bosh-install/   Scripts that trigger the rollout and destruction of the environment on AWS
+    └── src/        All terraform resources and corresponding scripts
+        ├── bin/    Scripts that are executed on ec2 instances after they are rolled out
+        └── ssh/    Generated ssh keys        
+    ```
+    
+    You can always have a peek at a reference implementation of our environment when you clone the git repository of this guide.
+        
+    ```bash
+    git clone https://github.com/ottenwbe/bosh-install.git
+    cd bosh-install
+    ```
 
 1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already.
 
@@ -126,47 +141,21 @@ We now want to take a deeper look into the setup.
     secret_key=..." >> terraform.tfvars
     ```
 
-    We will make use of the variables. To this end, make sure that there is no whitespace in each line.
+    We will make use of the variables. To this end, make sure that there is no whitespace in each line of terraform.tfvars.
     This also means, if you do not want to keep your credentials in a file, you have to modify parts of the scripts!
 
 
-### The Structure ###
-
-The following outline gives you a brief glimpse at the project outline that I anticipate throughout the guide:
-    
-```    
-├── destroy.sh                  Script to cleanup the environment on AWS
-├── rollout.sh                  Script to rollout the environment on AWS
-└── src/                        All terraform resources and corresponding scripts
-    ├── bin/                    Scripts that are executed on ec2 instances after the rollout
-    │   ├── delete.sh
-    │   └── install.sh
-    ├── ssh/                    Generated ssh keys        
-    ├── aws-vpc.tf              Describes our VPC on AWS
-    ├── jumpbox.tf              Defines the jumpbox instance
-    ├── nat.tf                  Desfines the NAT instance
-    ├── security-groups.tf      Defines the access to our instances
-    ├── subnets.tf              Defines the networks and routing tables 
-    ├── key-pairs.tf            Describes the key pairs, see ssh folder
-    ├── outputs.tf              Useful outputs, i.e., for the cleanup (destroy.sh)
-    └── variables.tf       
-```
-h
-You can always have a peek at a reference implementation of our environment when you clone  the git repository of this guide.
-    
-```bash
-git clone https://github.com/ottenwbe/bosh-install.git
-cd bosh-install
-```
-
 ### The One with the Infrastructure as Code ###
 
-The whole infrastructure is defined in Hashicorp's HCL.
+The whole bosh infrastructure is defined in Hashicorp's HCL. In particular, 
+the vpc, network, firewalls, the jumpbox instance, and the NAT instance. 
+The bosh-director, however, will be rolled out using [bosh cli v2](https://github.com/cloudfoundry/bosh-cli).
 
 #### Variables ###
 
-At first we define some basic variables in ```variables.tf```. We can reference them later in other terraform files.
-Here we are mostly concerned with the ips and ip ranges for the different subnets
+At first define some basic variables in a ```src/variables.tf``` file. 
+Terraform allows you to reference the variables later in other terraform files.
+Observe that I defined in the example specific ips and ip ranges for the different subnets.
 
 ```hcl
 /** Access key. NOTE: DO NOT DECLARE YOUR ACTUAL KEY HERE */
@@ -179,27 +168,23 @@ variable "secret_key" {
   description = "Secret Access"
 }
 
-/** AZ which is used by default during the deployment */
 variable "default_az" {
-  description = "Default AZ"
+  description = "Default Availability Zone which is used during the eployment"
   default     = "eu-central-1a"
 }
 
-/** Region which is used by default during te rollout */
 variable "region" {
-  description = "AWS region to host the bosh network"
+  description = "AWS region to host the bosh environment"
   default     = "eu-central-1"
 }
 
-/** Default GW */
 variable "vpc_gw" {
-  description = "GW for the vpc"
+  description = "Gateway for the vpc"
   default     = "10.0.0.1"
 }
 
-/** GW for the bosh network */
 variable "bosh_gw" {
-  description = "GW for the bosh network"
+  description = "Gateway for the bosh network"
   default     = "10.0.1.1"
 }
 
@@ -208,7 +193,6 @@ variable "bosh_ip" {
   default     = "10.0.1.6"
 }
 
-/** Default CIDR */
 variable "vpc_cidr" {
   description = "CIDR for VPC"
   default     = "10.0.0.0/16"
@@ -233,14 +217,14 @@ variable "amis" {
     eu-central-1 = "ami-829145ed"
   }
 }
-
 ```
 
 #### The VPC ###
 
-At first we have to define our provider (aws) and the virtual private cloud (vpc).
-In our example this is defined in the file ```aws-vpc.tf```.
-As you can see in the code snippet below, we simply reference variables defined in our variables.tf.
+At first you should define the provider (aws) and a virtual private cloud (vpc).
+In the example this is defined in the file ```src/aws-vpc.tf```.
+As you can see in the code snippet below, we simply reference variables
+that we previously defined in variables.tf ("${var.\<variable name\>}"). 
 
 ```hcl
 provider "aws" {
@@ -261,10 +245,10 @@ resource "aws_vpc" "default" {
 
 #### Security Groups ###
 
-We now define our firewall rules, e.g., to define which inbound/outbound traffic is allowed. This is done with security groups. You can associate the firewall rules to vms in order to make them effective on the vm.
-In particular, we define three security groups. First, the ```ssh``` group which allows inbound ssh traffic from the all destinations in the internet.
-Second, a ```nat``` rule, which allows http(s) traffic to servers outside of your vpc.
-Third, an any-to-any connection for all ```bosh``` instances. For improved security you can always add more finegranular rules here.
+As a second step you need to define define which inbound/outbound traffic is allowed in the bosh environment. 
+This can be done with security groups that you define in the file ```src/security-groups.tf```. 
+We can later associate these security groups to vms in order to make them effective on the vm.
+We define three security groups. First, the ```ssh``` group which allows inbound ssh traffic from the all destinations in the internet to a vm.
 
 ```hcl-terraform
 resource "aws_security_group" "ssh" {
@@ -287,7 +271,11 @@ resource "aws_security_group" "ssh" {
   }
 
 }
+```
 
+Second, a ```nat``` rule, which allows http(s) traffic to servers outside of your vpc.
+
+```hcl-terraform
 /* Security group for the nat instance */
 resource "aws_security_group" "vpc_nat" {
   name        = "vpc_nat"
@@ -312,7 +300,12 @@ resource "aws_security_group" "vpc_nat" {
     Name = "NATSG"
   }
 }
+```
 
+Third, an any-to-any connection for all ```bosh``` instances. 
+For improved security you can always add more specific rules here.
+
+```hcl-terraform
 resource "aws_security_group" "bosh" {
   name        = "bosh"
   description = "Security group for bosh vms"
@@ -340,17 +333,18 @@ resource "aws_security_group" "bosh" {
 
 #### Subnets ###
 
-We now define our networks in the ```subnets.tf```, including the gateway to the internet.
-We also define our two networks. The public network for the internet facing systems, i.e., the nat instance and the 
-jumpbox and the private network for bosh. Routing tables ensure that the traffic from the private network towards the internet
-is routed over the nat instance.
+We now define our networks in the file ```src/subnets.tf```, including the gateway to the internet.
 
 ```hcl-terraform
-/** internet access */
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.default.id}"
 }
+```
 
+We specify two networks. The public network for the internet facing systems, i.e., the nat instance and the 
+jumpbox, and the private network for bosh. 
+
+```hcl-terraform
 /** public subnet for the nat instance and the jumpbox */
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.default.id}"
@@ -376,7 +370,12 @@ resource "aws_subnet" "bosh" {
     Name = "bosh-net"
   }
 }
+```
 
+Routing tables ensure that the traffic from the private network towards the internet
+is routed over the nat instance.
+
+```hcl-terraform
 resource "aws_route_table" "public" {
   vpc_id = "${aws_vpc.default.id}"
 
@@ -412,28 +411,29 @@ resource "aws_route_table_association" "bosh" {
 
 ### The instances ###
 
-We now also define the __jumpbox__ and __nat instance__.  
+We now also define the _jumpbox_ and _NAT instance_.  
 Both instances will select the ami for eu-central and are of type t2.micro.
 Both instances are also placed in the public subnet.
  
-A cool thing about security groups is tht you can mix and match them as needed when associating them to insatances. To this end,
-the jumpbox can be accessed via ssh and communicate with the bosh instances.
+A cool thing about security groups is that you can mix and match them as needed when associating them to insatances. 
+To this end, the jumpbox can be accessed via ssh and communicate with the bosh instances by 
+assigning both, the nat and ssh security group to the instance.
 
 Note that we declare an explicit relation between the instances with the depends on ```depends_on```.
-The nat instance will be spun up before the jumpbox.
-
-For now, ignore the fact that we left out the provisioners and no software is installed on the machines.
+The nat instance will be spun up before the jumpbox. 
+You will see that this is necessary when we detail how to deploy the bosh-director from the jumpbox.
 
 ```hcl-terraform
 /** jumpbox instance */
 resource "aws_instance" "jumpbox" {
-  ami             = "${lookup(var.amis, var.region)}"
-  instance_type   = "t2.micro"
-  subnet_id       = "${aws_subnet.public.id}"
-  security_groups = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
-  key_name        = "${aws_key_pair.deployer.key_name}"
-
-  /* ensure that nat instance and network are up and running */
+  ami                    = "${lookup(var.amis, var.region)}"
+  availability_zone      = "${var.default_az}"
+  instance_type          = "t2.micro"
+  subnet_id              = "${aws_subnet.public.id}"
+  vpc_security_group_ids = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
+  key_name               = "${aws_key_pair.deployer.key_name}"
+  
+  /* ensure that both, nat instance and network, are up and running */
   depends_on = ["aws_instance.nat", "aws_subnet.bosh"]
 
 /**
@@ -442,7 +442,12 @@ resource "aws_instance" "jumpbox" {
   }
 */
 }
+```
 
+For your NAT instance the ```source_dest_check``` is to be set to false since you want to pass traffic through the instance.
+For now, ignore the fact that you left out the provisioners and no software is installed on the machines.
+
+```hcl-terraform
 /** nat instance */
 resource "aws_instance" "nat" {
   ami                         = "${lookup(var.amis, var.region)}"
@@ -462,7 +467,11 @@ resource "aws_instance" "nat" {
     Name = "VPC NAT"
   }
 }
+```
 
+We also allocate an elastic ip for the nat instance.
+
+```hcl-terraform
 resource "aws_eip" "nat" {
   instance = "${aws_instance.nat.id}"
   vpc      = true
@@ -473,7 +482,7 @@ resource "aws_eip" "nat" {
 
 Provisioners allow us to install software during the creation of instances. 
 For the jumpbox we first copy required files (a ssh key and a script) to the instance.
-Then we execute the ```install.sh``` script, which infact will spin up our bosh-director.
+Then we execute the ```install.sh``` script, which in fact will spin up our bosh-director.
 
 ```hcl-terraform
   /** copy the bosh key to the jumpbox */

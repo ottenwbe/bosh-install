@@ -17,7 +17,6 @@ resource "aws_security_group" "ssh" {
   tags {
     Name = "ssh sg"
   }
-
 }
 
 /* Security group for the nat instance */
