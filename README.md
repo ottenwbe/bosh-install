@@ -602,14 +602,15 @@ The ```install.sh``` script will then execute the following on the jumpbox:
       ```
 
 After the director is up and running, several other tasks can be executed to configure your bosh director.
-1. A cloud config will be generated and uploaded
-1. A stemcell will be uploaded
-1. A dummy release will be uploaded for testing purposes.
+1. Upload an initial cloud config
+1. Upload a stemcell
+1. Test the deployment with a dummy release
 
 ### Putting it a all together ###
 
-Execute the ```./rollout.sh``` script which triggers terraform and the rollout of the environment.
-As an important step in the rollout, we also generate key pairs.
+I put everything together in the ```./rollout.sh``` script which triggers terraform and the rollout of the environment.
+As an important step in the rollout script, key pairs are generated.
+To get your environment up and running you only have to execute the script.
 
 ```bash
 #!/usr/bin/env bash
@@ -644,13 +645,12 @@ fi
 # Deploy the nat instance, jumpbox instance with terraform; moreover trigger the script to create a bosh director
 terraform plan --out=plan
 terraform apply plan
-
 ```
 
 ### What now? ###
 
-First it means waiting for aroutn 10-15 minutes.
-Then you should be able to access the jumpbox and simply test your bosh director.
+First it means waiting for around 10-15 minutes until all machines are up and running.
+Then you should be able to access the jumpbox and simply start using your bosh director.
 
 ```bash
 ssh -i src/ssh/deployer.pem ubuntur@$(terraform output jumpbox_dns)
@@ -658,10 +658,10 @@ ssh -i src/ssh/deployer.pem ubuntur@$(terraform output jumpbox_dns)
 
 ### Cleaning Up ###
 
-You can clean up everything by calling the ```./destroy.sh``` script.
-As you can see, we rely on the outputs from our terraform deployment earlier and the aws keys in terraform.tfvars to fetch all
+You can clean up everything by defining and calling a second script ```destroy.sh```.
+As you can see, I rely on the outputs from our terraform deployment earlier and the aws keys in terraform.tfvars to fetch all
 relevant parameters for the destruction.
-With those information we can ssh to the jumpbox in order to delete the bosh-director.
+With this information the script can ssh to the jumpbox in order to delete the bosh-director.
 The terraform destroy command will cleanup the rest for us.
 
 ```bash
@@ -692,7 +692,7 @@ EOF
 terraform destroy -force
 ```
 
-On the jumpbox the destroy script will call the ```delete.sh``` script.
+On the jumpbox the destroy script will call the ```src/bin/delete.sh``` script.
 This uses the bosh cli to destroy the bosh director.
 
 ```bash
@@ -743,6 +743,7 @@ If some resources are still left, the best approach is to delete the vpc.
 ## What is missing ##
 
 * First and foremost tests! 
+* There is always room for improvement... 
 
 ## Thanks for Reading ##
 I hope you enjoyed the guide.
