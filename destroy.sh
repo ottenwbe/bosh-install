@@ -16,7 +16,7 @@ while read -r line; do declare $line; done <terraform.tfvars
 # Destroy the bosh director
 scp -oStrictHostKeyChecking=no -i ssh/deployer.pem bin/delete.sh ubuntu@${jumpbox_dns}:/home/ubuntu/
 ssh -oStrictHostKeyChecking=no -i ssh/deployer.pem ubuntu@${jumpbox_dns} << EOF
-  echo "Will destroy the bosh director now"
+  echo "The bosh director will be destroyed now"
   chmod +x delete.sh
   ./delete.sh "${internal_cidr}" "${internal_gw}" "${bosh_ip}" ${access_key} ${secret_key} "${subnet_id}"  ~/.ssh/bosh.pem
 EOF
