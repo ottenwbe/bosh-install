@@ -40,7 +40,7 @@ We come back to the individual tools when we need them.
 
 ## Target Environment ##
 
-<img src="res/infrastructure.pdf" alt="infrastructure"  width="800" height="600inch" class=inline>
+![Infrastructure](res/infrastructure.pdf)
 
 In its target state your environment will consist of three VMs, a _jumpbox_, a _NAT instance_, and a _bosh-director_. 
 With this setup you can immediately deploy bosh releases.
@@ -56,56 +56,15 @@ Ultimately this setup would prevent bosh vms from downloading additional softwar
 Since the bosh director cannot be accessed from the Internet. This is where the NAT instance shines. 
 It allows our bosh director to access the internet via http(s); but no other protocol.
 
-## Quickstart for the Impatient ##
-
-For those of you who just want to get an environment up and running, the following quickstart guide may suffice.
-However, this part of the guide is only recommended for those who have prior experience with both, terraform and bosh. 
-
-1. Clone the git repository of this guide, which provides all required terraform HashiCorp configuration language (HCL) files.
     
-    ```bash
-    git clone https://github.com/ottenwbe/bosh-install.git
-    cd bosh-install
-    ```
-
-1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html), if you haven't done that already.
-
-    ```bash
-    curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
-    sudo unzip terraform.zip -d /opt/terraform
-    sudo ln -s /opt/terraform/terraform /usr/bin/terraform
-    rm -f terraform.zip
-    ```
-    
-1. Create a file ```terraform.tfvars``` in the src directory which includes your AWS access key and secret key 
-   
-    ```bash
-    cd src
-    touch terraform.tfvars
-    echo "access_key=...
-    secret_key=..." >> terraform.tfvars
-    ```
-    
-1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxiliary nat instance will be rolled out. 
- 
-     ```bash
-     ./rollout.sh
-     ```
-
-1. To destroy your environment after you finished the guide, execute the destroy script. You may want to go through your AWS console to make sure that everything is destroyed as planned. 
-
-    ```bash
-    ./destroy.sh
-    ```
-    
-## Detailed Guide ##
+## Automated Deployment of the Environment ##
 
 Let's take a deeper look at how you can automate the setup of the bosh environment.
+For the impatient I prepared a [quick start guide](QUICKSTART.md).
      
 ### Preparations ###    
 
-We assume that you work on a Linux (like) environment.
-In order to be able to follow the guide you should prepare your local system as follows:
+In order to be able to follow the guide you should prepare your local Linux system as follows:
 
 1. Create the following folder structure that is used throughout the guide:
         
