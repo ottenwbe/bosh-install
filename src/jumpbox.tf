@@ -7,7 +7,7 @@ resource "aws_instance" "jumpbox" {
   vpc_security_group_ids = ["${aws_security_group.bosh.id}", "${aws_security_group.vpc_nat.id}", "${aws_security_group.ssh.id}"]
   key_name            = "${aws_key_pair.deployer.key_name}"
 
-  /* ensure that nat instance and network are up and running */
+  /* ensure that the nat instance and network are up and running */
   depends_on = ["aws_instance.nat", "aws_subnet.bosh"]
 
   provisioner "local-exec" {
@@ -27,6 +27,7 @@ resource "aws_instance" "jumpbox" {
     destination = "/home/ubuntu/.ssh/bosh.pem"
   }
 
+  /** copy the install script to the jumpbox */
   provisioner "file" {
     connection {
       user        = "ubuntu"
@@ -39,6 +40,7 @@ resource "aws_instance" "jumpbox" {
     destination = "/home/ubuntu/install.sh"
   }
 
+  /** execute the remote script */
   provisioner "remote-exec" {
     connection {
       user        = "ubuntu"
@@ -54,6 +56,6 @@ resource "aws_instance" "jumpbox" {
   }
 
   tags = {
-    Name = "jumphost-vm-${count.index}"
+    Name = "jumphost-vm"
   }
 }

@@ -1,5 +1,5 @@
 output "jumpbox_ip" {
-  value = "${aws_instance.jumpbox.0.public_ip}"
+  value = "${aws_instance.jumpbox.public_ip}"
 }
 
 output "jumpbox_dns" {

@@ -10,7 +10,7 @@ to spin up a large number of virtual machines to deploy all required software co
 Bosh supports a cloud application in the release engineering, deployment, and lifecycle management.
 
 Deploying bosh on [AWS](https://aws.amazon.com/) requires that you set up your basic infrastructure (network, firewalling, key pairs, ...) beforehand. You can choose to do this manually. 
-However, the better approach is to rely on an IaaS automation tool like _terraform_. 
+However, the better approach is to rely on an IaaS automation tool like [_terraform_](http://terraform.io). 
 This allows you to define your AWS infrastructure as code.
 Which, in turn, makes the infrastructure configuration reproducible and testable.
 
@@ -111,8 +111,6 @@ In particular,
 the vpc, network, firewalls, the jumpbox instance, and the nat instance. 
 The bosh-director, however, is rolled out using the [bosh cli v2](https://github.com/cloudfoundry/bosh-cli).
 The following sections describe how you can organize and define terraform files (*tf).
-
-TODO: keys
 
 #### Variables ###
 
@@ -376,11 +374,37 @@ resource "aws_internet_gateway" "default" {
 }
 ```
 
+#### Key Pairs ###
+
+For ssh access to the instances you need to define key pairs. 
+Create two key pairs, one for bosh
+and one for the instances in the public network.
+This step is optional, as the final script that rolls out the environment can do that for you.  
+
+```bash
+ssh-keygen -t rsa -C "deployer" -P '' -f src/ssh/deployer -b 4096
+ssh-keygen -t rsa -C "bosh" -P '' -f src/ssh/bosh -b 4096
+```
+
+However, you have to define resources for the key pairs, e.g., in the file ```src/key-pairs.tf```. 
+
+```hcl-terraform
+/** key for deployment of jumpbox and nat */
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer"
+  public_key = "${file("ssh/deployer.pub")}"
+}
+
+/** key for bosh */
+resource "aws_key_pair" "bosh" {
+  key_name   = "bosh"
+  public_key = "${file("ssh/bosh.pub")}"
+}
+```
+
 ### The instances ###
 
-Finally, you have everything prepared to define the _jumpbox_ and _nat_ instances.  
-Both instances will select the ami for eu-central and are of type t2.micro.
-Both instances are also placed in the public subnet.
+Finally, you have everything prepared to define the _jumpbox_ and _nat_ instances.  Both instances will select the ami for eu-central and are of type t2.micro. Both instances are also placed in the public subnet.
  
 A cool thing about security groups is that you can combine them as needed when associating them to instances. 
 The jumpbox can be accessed via ssh and 
@@ -585,7 +609,37 @@ After the director is up and running, several other tasks are executed to config
 1. Upload of a stemcell.
 1. Test pf the deployment with a dummy release.
 
-### Putting it a all together ###
+### Outputs ###
+
+You can define outputs that inform you about the concrete ids of resources.
+
+```hcl-terraform
+output "jumpbox_ip" {
+  value = "${aws_instance.jumpbox.public_ip}"
+}
+
+output "jumpbox_dns" {
+  value = "${aws_instance.jumpbox.public_dns}"
+}
+
+output "bosh_subnet_cidr" {
+  value = "${var.bosh_subnet_cidr}"
+}
+
+output "bosh_gw" {
+  value = "${var.bosh_gw}"
+}
+
+output "bosh_ip" {
+  value = "${var.bosh_ip}"
+}
+
+output "bosh_subnet" {
+  value = "${aws_subnet.bosh.id}"
+}
+```
+
+### Putting it all together ###
 
 You can trigger the complete deployment with a simple shell script. 
 In the example I denoted the script ```./rollout.sh```.
