@@ -39,7 +39,7 @@ We come back to the individual tools when we need them.
 
 ## Target Environment ##
 
-![Infrastructure](res/infrastructure.pdf)
+![Infrastructure](res/infrastructure.png)
 
 In its target state your environment will consist of three VMs, a _jumpbox instance_, a _nat instance_, and a _bosh-director_. 
 With this setup you can immediately deploy bosh releases.
