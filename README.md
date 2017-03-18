@@ -33,9 +33,9 @@ We come back to the individual tools when we need them.
 |---|---|---|
 | Bosh  | [http://bosh.io](http://bosh.io)  | The service we want to deploy on AWS |
 | Terraform  |  [http://terraform.io](http://terraform.io) | Bootstrapping of the bosh infrastructure |
-| UAA  |  [https://github.com/cloudfoundry/uaa](https://github.com/cloudfoundry/uaa) | (optional) User management for bosh |   
 | Bosh Deployment  | [https://github.com/cloudfoundry/bosh-deployment](https://github.com/cloudfoundry/bosh-deployment)  | Bosh templates for the deployment of bosh |
-| Bosh Dummy Release  |   [https://github.com/pivotal-cf-experimental/dummy-boshrelease](https://github.com/pivotal-cf-experimental/dummy-boshrelease)  | Release for testing bosh |
+| UAA  |  [https://github.com/cloudfoundry/uaa](https://github.com/cloudfoundry/uaa) | (optional) User management for bosh |   
+| Bosh Dummy Release  |   [https://github.com/pivotal-cf-experimental/dummy-boshrelease](https://github.com/pivotal-cf-experimental/dummy-boshrelease)  | (optional) Release for testing bosh |
 
 ## Target Environment ##
 
@@ -213,7 +213,7 @@ You can associate these security groups to vms in order to put them into effect.
 You have to define three security groups. 
 First, the ```ssh``` group which allows inbound ssh traffic from the all destinations in the internet to a vm.
 
-```hcl-terraform
+```hcl
 resource "aws_security_group" "ssh" {
   name        = "ssh"
   description = "SSH access to instances from the internet"
@@ -238,7 +238,7 @@ resource "aws_security_group" "ssh" {
 
 Second, a ```nat``` rule, which allows http(s) traffic to servers outside of your vpc.
 
-```hcl-terraform
+```hcl
 /* Security group for the nat instance */
 resource "aws_security_group" "vpc_nat" {
   name        = "vpc_nat"
@@ -268,7 +268,7 @@ resource "aws_security_group" "vpc_nat" {
 Third, an any-to-any connection between all ```bosh``` instances. 
 For improved security you can always add more specific rules here.
 
-```hcl-terraform
+```hcl
 resource "aws_security_group" "bosh" {
   name        = "bosh"
   description = "Security group for bosh vms"
@@ -301,7 +301,7 @@ The public network for the internet facing systems,
 i.e., the nat instance, and the private network for bosh.
 In the example those networks are defined in the file ```src/subnets.tf```.  
 
-```hcl-terraform
+```hcl
 /** public subnet for the nat instance and the jumpbox */
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.default.id}"
@@ -332,7 +332,7 @@ resource "aws_subnet" "bosh" {
 Routing tables ensure that the traffic from the private network towards the internet
 is routed over the nat instance.
 
-```hcl-terraform
+```hcl
 resource "aws_route_table" "public" {
   vpc_id = "${aws_vpc.default.id}"
 
@@ -368,7 +368,7 @@ resource "aws_route_table_association" "bosh" {
 
 Lastly the internet gateway needs to be defined. 
 
-```hcl-terraform
+```hcl
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.default.id}"
 }
@@ -388,7 +388,7 @@ ssh-keygen -t rsa -C "bosh" -P '' -f src/ssh/bosh -b 4096
 
 However, you have to define resources for the key pairs, e.g., in the file ```src/key-pairs.tf```. 
 
-```hcl-terraform
+```hcl
 /** key for deployment of jumpbox and nat */
 resource "aws_key_pair" "deployer" {
   key_name   = "deployer"
@@ -415,7 +415,7 @@ Note that we declare an explicit relation between the instances with the ```depe
 You will see that this is necessary for deploying the bosh-director from the jumpbox, since we use the bosh cli and not terraform for provisioning this vm 
 and need to assure that all prerequisites are up and running.
 
-```hcl-terraform
+```hcl
 /** jumpbox instance */
 resource "aws_instance" "jumpbox" {
   ami                    = "${lookup(var.amis, var.region)}"
@@ -438,7 +438,7 @@ resource "aws_instance" "jumpbox" {
 
 For your nat instance the ```source_dest_check``` is to be set to false since you want to pass traffic through the instance.
 
-```hcl-terraform
+```hcl
 /** nat instance */
 resource "aws_instance" "nat" {
   ami                         = "${lookup(var.amis, var.region)}"
@@ -462,7 +462,7 @@ resource "aws_instance" "nat" {
 
 You also need to allocate an elastic ip for the nat instance.
 
-```hcl-terraform
+```hcl
 resource "aws_eip" "nat" {
   instance = "${aws_instance.nat.id}"
   vpc      = true
@@ -481,7 +481,7 @@ Then you should execute a script remotely with the remote-exec provisioner to la
 Observe that you can use terraform variables or interpolated values when calling the script with input parameters. 
  
 
-```hcl-terraform
+```hcl
   /** copy the bosh key to the jumpbox */
   provisioner "file" {
     connection {
@@ -528,7 +528,7 @@ On the nat instance, the example simply updates the operating system and configu
 the iptables. The latter allows the instance to route traffic
 from a bosh to the internet.
 
-```hcl-terraform
+```hcl
   provisioner "remote-exec" {
     connection {
       user        = "ubuntu"
@@ -575,7 +575,7 @@ It actually does the following for you:
     sudo mv bosh-cli-2.0.1-linux-amd64 /usr/local/bin/bosh
     ```
     
-1. With the help of bosh deployment and the bosh cli, the script rolls out a director.
+1. With the help of bosh deployment and the bosh cli, the script rolls out a director and the UAA.
     Recall that the remote-exec provisioner called the install script with several
     input parameters.
     The variables internal_cidr, internal_gw, internal_ip, access_key_id, secret_access_key,
@@ -604,16 +604,17 @@ It actually does the following for you:
       --var-file private_key=${private_key_file}
       ```
 
-After the director is up and running, several other tasks are executed to configure your bosh director.
+After the director is up and running, your script could perform several other tasks to configure your bosh director. 
+For details take a look at the tutorial's git repository.
 1. Upload of an initial cloud config.
 1. Upload of a stemcell.
-1. Test pf the deployment with a dummy release.
+1. Test of the deployment with a dummy release.
 
 ### Outputs ###
 
 You can define outputs that inform you about the concrete ids of resources.
 
-```hcl-terraform
+```hcl
 output "jumpbox_ip" {
   value = "${aws_instance.jumpbox.public_ip}"
 }
