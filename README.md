@@ -578,8 +578,8 @@ It actually does the following for you:
 1. With the help of bosh deployment and the bosh cli, the script rolls out a director and the UAA.
     Recall that the remote-exec provisioner called the install script with several
     input parameters.
-    The variables internal_cidr, internal_gw, internal_ip, access_key_id, secret_access_key,
-    subnet_id, and private_key_file are assigned with those input parameters.     
+    These input parameters are assigned to the variables internal_cidr, internal_gw, internal_ip, access_key_id, secret_access_key,
+    subnet_id, and private_key_file.     
     
     ```bash
     mkdir -p ~/deployments/bosh-master    
