@@ -15,7 +15,7 @@ This allows you to define your AWS infrastructure as code.
 Which, in turn, makes the infrastructure configuration reproducible and testable.
 
 In this tutorial I explain how you can setup a bosh environment on AWS with terraform. The environment, comprising the basic infrastructure, the bosh director, and a simple bosh release, can then be installed with the execution of a shell script.
-For those interested in setting up the bosh environment manually, I provide an additional tutorial (see [Manual Deployment](MANUAL.md)).
+For those interested in setting up the bosh environment manually, I provide an additional tutorial (see [Manual Deployment](doc/MANUAL.md)).
 
 ## A Word of Caution ##
 
@@ -58,7 +58,7 @@ It allows your bosh director to access the internet via http(s); but no other pr
 ## Automated Deployment of the Environment ##
 
 Let's take a deeper look at how you can automate the setup of the bosh environment.
-For the impatient I prepared a [quick start guide](QUICKSTART.md).
+For the impatient I prepared a [quick start guide](doc/QUICKSTART.md).
      
 ### Preparations ###    
 

@@ -1,8 +1,10 @@
-#Manual Installation of Bosh
+# Manual Installation of Bosh #
+
+This document details manual scripts that ar automated in the actual [tutorial](../README.md).
 
 ## Install inception VM ##
 
-1. Configure your AWS (for details see [bosh.io](https://bosh.io/docs/init-aws.html); NOTE: Do not perform the bosh-init steps, this will be done in the remainder of this guide; only prepare your AWS)
+1. Configure your AWS (for details see [bosh.io](https://bosh.io/docs/init-aws.html); NOTE: Do not perform the bosh-init steps, this will be done in the remainder; only prepare your AWS)
     1. [Create a Virtual Private Cloud (VPC) with a Single Public Subnet](https://bosh.io/docs/init-aws.html#create-vpc) 
     1. [Create an Elastic IP]() 
     1. [Create a Key Pair]() - Output: ```bosh.pem```
