@@ -25,7 +25,7 @@ git clone https://github.com/cloudfoundry/bosh-deployment ~/workspace/bosh-deplo
 
 echo " --Download and Install bosh-cli-- "
 curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.1-linux-amd64
-chmod ugo+x bosh-cli-2.0.1-linux-amd64
+chmod +x bosh-cli-2.0.1-linux-amd64
 sudo mv bosh-cli-2.0.1-linux-amd64 /usr/local/bin/bosh
 
 echo " --Create a directory for the director-- "
@@ -33,7 +33,7 @@ mkdir -p ~/deployments/bosh-master
 
 cd ~/deployments/bosh-master
 
-echo "-- Trigger BOSH deployment with UAA for AWS --"
+echo "-- Trigger bosh deployment with UAA for AWS --"
 bosh create-env ~/workspace/bosh-deployment/bosh.yml \
   --state ./state.json \
   -o ~/workspace/bosh-deployment/aws/cpi.yml \
@@ -59,14 +59,14 @@ export BOSH_CLIENT_SECRET=`bosh int ./creds.yml --path /admin_password`
 # Alias the deployed Director
 bosh -e ${internal_ip} --ca-cert <(bosh int ./creds.yml --path /director_ssl/ca) alias-env bosh-1
 
-echo "-- Update cloud config with a single az "
+echo "-- Update a cloud config with a single az "
 bosh -n -e bosh-1 update-cloud-config ~/workspace/bosh-deployment/aws/cloud-config.yml \
   -v az=eu-central-1a \
   -v subnet_id=${subnet_id} \
   -v internal_cidr=${internal_cidr} \
   -v internal_gw=${internal_gw}
 
-# Upload an initial stemcell
+echo "-- Upload an initial stemcell --"
 bosh -e bosh-1 upload-stemcell ${stemcell_url}
 
 echo "-- Upload Release --"

@@ -10,7 +10,7 @@ bosh_key="bosh"
 bosh_path=ssh/${bosh_key}
 bosh_pem="${bosh_path}.pem"
 
-cd src
+cd $(dirname $0)/src
 
 # Generate keys for the rollout (deployer.pem/pub) and the bosh rollout (bosh.pub/.pem) in the sub directory ssh
 mkdir -p ssh

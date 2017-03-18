@@ -2,7 +2,7 @@
 
 set +e
 
-cd src
+cd $(dirname $0)/src
 
 # Use the output of terraform as configuration for the destroy process
 jumpbox_dns=$(terraform output jumpbox_dns)
@@ -14,7 +14,7 @@ bosh_ip=$(terraform output bosh_ip)
 while read -r line; do declare $line; done <terraform.tfvars
 
 # Destroy the bosh director
-scp -oStrictHostKeyChecking=no -i ssh/deployer.pem config/delete.sh ubuntu@${jumpbox_dns}:/home/ubuntu/
+scp -oStrictHostKeyChecking=no -i ssh/deployer.pem ec2/delete.sh ubuntu@${jumpbox_dns}:/home/ubuntu/
 ssh -oStrictHostKeyChecking=no -i ssh/deployer.pem ubuntu@${jumpbox_dns} << EOF
   echo "The bosh director will be destroyed now"
   chmod +x delete.sh

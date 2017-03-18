@@ -36,7 +36,7 @@ resource "aws_instance" "jumpbox" {
       private_key = "${file("ssh/deployer.pem")}"
     }
 
-    source      = "config/install.sh"
+    source      = "ec2/install.sh"
     destination = "/home/ubuntu/install.sh"
   }
 

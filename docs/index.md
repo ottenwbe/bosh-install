@@ -1,7 +1,5 @@
 # Tutorial: Deploy BOSH and UAA on AWS with Terraform #
 
-[![Build Status](https://travis-ci.org/ottenwbe/bosh-install.svg?branch=master)](https://travis-ci.org/ottenwbe/bosh-install)
-
 __NOTE: This tutorial and all scripts are still under review!__
 
 Modern cloud applications are inherently distributed and typically need 
@@ -15,7 +13,7 @@ This allows you to define your AWS infrastructure as code.
 Which, in turn, makes the infrastructure configuration reproducible and testable.
 
 In this tutorial I explain how you can setup a bosh environment on AWS with terraform. The environment, comprising the basic infrastructure, the bosh director, and a simple bosh release, can then be installed with the execution of a shell script.
-For those interested in setting up the bosh environment manually, I provide an additional tutorial (see [manual deployment tutorial](MANUAL.md)).
+For those interested in setting up a bosh environment manually, I provide a brief additional tutorial (see [manual deployment tutorial](manual-deployment.md)).
 
 ## A Word of Caution ##
 
@@ -58,7 +56,7 @@ It allows your bosh director to access the internet via http(s); but no other pr
 ## Automated Deployment of the Environment ##
 
 Let's take a deeper look at how you can automate the setup of the bosh environment.
-For the impatient I prepared a [quick start guide](../README.md).
+For the impatient I prepared a [quick start guide](quickstart.md).
      
 ### Preparations ###    
 
@@ -69,7 +67,7 @@ In order to be able to follow the steps in this tutorial you should prepare a lo
     ```
     bosh-install/   Scripts that trigger the rollout and destruction of the environment on AWS
     └── src/        All terraform resources and corresponding scripts
-        ├── config/ Scripts that are executed on ec2 instances after the latter's launch
+        ├── ec2/    Scripts that are executed on ec2 instances after the latter's launch
         └── ssh/    Generated ssh keys        
     ```
     
@@ -504,7 +502,7 @@ Observe that you can use terraform variables or interpolated values when calling
       private_key = "${file(\"ssh/deployer.pem\")}"
     }
 
-    source      = "config/install.sh"
+    source      = "ec2/install.sh"
     destination = "/home/ubuntu/install.sh"
   }
 
@@ -716,7 +714,7 @@ bosh_ip=$(terraform output bosh_ip)
 while read -r line; do declare $line; done <terraform.tfvars
 
 # Destroy the bosh director by sshing to the jumpbox
-scp -oStrictHostKeyChecking=no -i ssh/deployer.pem config/delete.sh ubuntu@${jumpbox_dns}:/home/ubuntu/
+scp -oStrictHostKeyChecking=no -i ssh/deployer.pem ec2/delete.sh ubuntu@${jumpbox_dns}:/home/ubuntu/
 ssh -oStrictHostKeyChecking=no -i ssh/deployer.pem ubuntu@${jumpbox_dns} << EOF
   echo "The bosh director will be destroyed now"
   chmod +x delete.sh
@@ -727,7 +725,7 @@ EOF
 terraform destroy -force
 ```
 
-On the jumpbox the destroy script will call the ```src/config/delete.sh``` script.
+On the jumpbox the destroy script will call the ```src/ec2/delete.sh``` script.
 This script uses the bosh cli to destroy the bosh director.
 
 ```bash

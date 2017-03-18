@@ -1,49 +1,24 @@
 # bosh install #
 
-A tutorial and a set of corresponding scripts for deploying bosh on aws with terraform.
+[![Build Status](https://travis-ci.org/ottenwbe/bosh-install.svg?branch=master)](https://travis-ci.org/ottenwbe/bosh-install)
 
-# Tutorial #
+A tutorial and a set of scripts for deploying bosh on AWS with terraform.
 
-For a detailed documentation see the tutorial at [https://ottenwbe.github.io/bosh-install/](https://ottenwbe.github.io/bosh-install/).
+## A Word of Caution ##
 
-# Quickstart for the Impatient #
+Before you follow the steps in this tutorial you should be aware that you will create real resources on AWS that cost money. 
+In particular, the tutorial requires that you deploy more resources than included in Amazon's free tier, i.e., two t2.small and one m3.xlarge instance. 
+Obviously, I will not provide compensation for any costs.
 
-To get an environment up and running, the following quickstart guide suffices.
-However, this part of the tutorial is only recommended for those who have prior experience with both, terraform and bosh. 
+# Comprehensive Tutorial #
 
-1. Clone the git repository of this guide, which provides all required terraform HashiCorp configuration language (HCL) files.
-    
-    ```bash
-    git clone https://github.com/ottenwbe/bosh-install.git
-    cd bosh-install
-    ```
+For a detailed description of the project see the tutorial at [https://ottenwbe.github.io/bosh-install/](https://ottenwbe.github.io/bosh-install/).
 
-1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html), if you haven't done that already.
-
-    ```bash
-    curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
-    sudo unzip terraform.zip -d /opt/terraform
-    sudo ln -s /opt/terraform/terraform /usr/bin/terraform
-    rm -f terraform.zip
-    ```
-    
-1. Create a file ```terraform.tfvars``` in the src directory which includes your AWS access key and secret key 
-   
-    ```bash
-    cd src
-    touch terraform.tfvars
-    echo "access_key=...
-    secret_key=..." >> terraform.tfvars
-    ```
-    
-1. Execute the rollout script to deploy a jumbox and from there a bosh director. For internet access an auxiliary nat instance will be rolled out. 
+# Quick Start Guide #
  
-     ```bash
-     ./rollout.sh
-     ```
+To jumpstart there is a [quick start guide](docs/quickstart.md). 
+ 
+# Contributions # 
 
-1. To destroy your environment after you finished the guide, execute the destroy script. You may want to go through your AWS console to make sure that everything is destroyed as planned. 
-
-    ```bash
-    ./destroy.sh
-    ```
+There is always room for improvement. 
+Feel free to suggest optimizations, extensions, or corrections.
