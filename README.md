@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ottenwbe/bosh-install.svg?branch=master)](https://travis-ci.org/ottenwbe/bosh-install)
 
-__NOTE: This tutorial and all scripts are still WIP!__
+__NOTE: This tutorial and all scripts are still under review!__
 
 Modern cloud applications are inherently distributed and typically need 
 to spin up a large number of virtual machines to deploy all required software components.
@@ -392,13 +392,13 @@ However, you have to define resources for the key pairs, e.g., in the file ```sr
 /** key for deployment of jumpbox and nat */
 resource "aws_key_pair" "deployer" {
   key_name   = "deployer"
-  public_key = "${file("ssh/deployer.pub")}"
+  public_key = "${file(\"ssh/deployer.pub\")}"
 }
 
 /** key for bosh */
 resource "aws_key_pair" "bosh" {
   key_name   = "bosh"
-  public_key = "${file("ssh/bosh.pub")}"
+  public_key = "${file(\"ssh/bosh.pub\")}"
 }
 ```
 
@@ -488,7 +488,7 @@ Observe that you can use terraform variables or interpolated values when calling
       user        = "ubuntu"
       host        = "${aws_instance.jumpbox.public_dns}"
       timeout     = "1m"
-      private_key = "${file("ssh/deployer.pem")}"
+      private_key = "${file(\"ssh/deployer.pem\")}"
     }
 
     source      = "ssh/bosh.pem"
@@ -501,7 +501,7 @@ Observe that you can use terraform variables or interpolated values when calling
       user        = "ubuntu"
       host        = "${aws_instance.jumpbox.public_dns}"
       timeout     = "1m"
-      private_key = "${file("ssh/deployer.pem")}"
+      private_key = "${file(\"ssh/deployer.pem\")}"
     }
 
     source      = "bin/install.sh"
@@ -514,7 +514,7 @@ Observe that you can use terraform variables or interpolated values when calling
       user        = "ubuntu"
       host        = "${aws_instance.jumpbox.public_dns}"
       timeout     = "25m"
-      private_key = "${file("ssh/deployer.pem")}"
+      private_key = "${file(\"ssh/deployer.pem\")}"
     }
 
     inline = [
@@ -533,7 +533,7 @@ from a bosh to the internet.
     connection {
       user        = "ubuntu"
       timeout     = "5m"
-      private_key = "${file("ssh/deployer.pem")}"
+      private_key = "${file(\"ssh/deployer.pem\")}"
     }
 
     inline = [
