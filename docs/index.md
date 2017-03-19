@@ -81,7 +81,7 @@ In order to be able to follow the steps in this tutorial you should prepare a lo
 1. Install [terraform](https://www.terraform.io/intro/getting-started/install.html) if you haven't done that already.
 
     ```bash
-    curl -fSL "https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip" -o terraform.zip
+    curl -fSL "https://releases.hashicorp.com/terraform/0.9.1/terraform_0.9.1_linux_amd64.zip" -o terraform.zip
     sudo unzip terraform.zip -d /opt/terraform
     sudo ln -s /opt/terraform/terraform /usr/bin/terraform
     rm -f terraform.zip
