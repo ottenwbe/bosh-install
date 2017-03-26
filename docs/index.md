@@ -1,6 +1,6 @@
 # Tutorial: Deploy BOSH and UAA on AWS with Terraform #
 
-__NOTE: This tutorial and all scripts are still under review!__
+
 
 Modern cloud applications are inherently distributed and typically need 
 to spin up a large number of virtual machines to deploy all required software components.
