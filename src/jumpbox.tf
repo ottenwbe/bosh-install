@@ -51,7 +51,7 @@ resource "aws_instance" "jumpbox" {
 
     inline = [
       "chmod +x install.sh",
-      "./install.sh ${var.bosh_subnet_cidr} ${var.bosh_gw} ${var.bosh_ip} ${var.access_key} ${var.secret_key} ${aws_subnet.bosh.id} ~/.ssh/bosh.pem",
+      "./install.sh ${var.bosh_subnet_cidr} ${var.bosh_gw} ${var.bosh_ip} ${var.access_key} ${var.secret_key} ${aws_subnet.bosh.id} ${var.default_az} ${var.region} ~/.ssh/bosh.pem",
     ]
   }
 
