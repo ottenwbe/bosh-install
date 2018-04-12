@@ -594,8 +594,8 @@ It actually does the following for you:
       -v internal_ip=${internal_ip} \
       -v access_key_id=${access_key_id} \
       -v secret_access_key=${secret_access_key} \
-      -v az=eu-central-1a \
-      -v region=eu-central-1 \
+      -v az=${aws_az} \
+      -v region=${aws_region} \
       -v default_key_name=bosh \
       -v default_security_groups=[bosh] \
       -v subnet_id=${subnet_id} \
@@ -613,6 +613,14 @@ For details take a look at the tutorial's git repository.
 You can define outputs that inform you about the concrete ids of resources.
 
 ```hcl
+output "aws_az" {
+  value = "${var.default_az}"
+}
+
+output "aws_region" {
+  value = "${var.region}"
+}
+
 output "jumpbox_ip" {
   value = "${aws_instance.jumpbox.public_ip}"
 }
@@ -710,6 +718,8 @@ internal_cidr=$(terraform output bosh_subnet_cidr)
 internal_gw=$(terraform output bosh_gw)
 subnet_id=$(terraform output bosh_subnet)
 bosh_ip=$(terraform output bosh_ip)
+aws_az=$(terraform output aws_az)
+aws_region=$(terraform output aws_region)
 # Read the aws access key and secret key
 while read -r line; do declare $line; done <terraform.tfvars
 
@@ -718,7 +728,7 @@ scp -oStrictHostKeyChecking=no -i ssh/deployer.pem ec2/delete.sh ubuntu@${jumpbo
 ssh -oStrictHostKeyChecking=no -i ssh/deployer.pem ubuntu@${jumpbox_dns} << EOF
   echo "The bosh director will be destroyed now"
   chmod +x delete.sh
-  ./delete.sh "${internal_cidr}" "${internal_gw}" "${bosh_ip}" ${access_key} ${secret_key} "${subnet_id}"  ~/.ssh/bosh.pem
+  ./delete.sh "${internal_cidr}" "${internal_gw}" "${bosh_ip}" ${access_key} ${secret_key} "${subnet_id}" "${aws_az}" "${aws_region}"  ~/.ssh/bosh.pem
 EOF
 
 # Destroy the terraform resources
@@ -739,7 +749,9 @@ internal_ip=$3
 access_key_id=$4
 secret_access_key=$5
 subnet_id=$6
-private_key_file=$7
+aws_az=$7
+aws_region=$8
+private_key_file=$9
 
 cd ~/deployments/bosh-master
 
@@ -762,8 +774,8 @@ bosh -e bosh-1 delete-env ~/workspace/bosh-deployment/bosh.yml \
   -v internal_ip=${internal_ip} \
   -v access_key_id=${access_key_id} \
   -v secret_access_key=${secret_access_key} \
-  -v az=eu-central-1a \
-  -v region=eu-central-1 \
+  -v az=${aws_az} \
+  -v region=${aws_region} \
   -v default_key_name=bosh \
   -v default_security_groups=[bosh] \
   -v subnet_id=${subnet_id} \
