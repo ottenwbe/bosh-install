@@ -686,7 +686,7 @@ After you executed the rollout script you have to wait for around 10-15 minutes 
 Then you can access the jumpbox and simply start using your bosh director.
 
 ```bash
-ssh -i src/ssh/deployer.pem ubuntur@$(terraform output jumpbox_dns)
+ssh -i src/ssh/deployer.pem ubuntu@$(terraform output jumpbox_dns)
 ```
 
 ### Cleaning Up ###
