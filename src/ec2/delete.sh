@@ -8,7 +8,9 @@ internal_ip=$3
 access_key_id=$4
 secret_access_key=$5
 subnet_id=$6
-private_key_file=$7
+aws_az=$7
+aws_region=$8
+private_key_file=$9
 
 cd ~/deployments/bosh-master
 
@@ -31,8 +33,8 @@ bosh -e bosh-1 delete-env ~/workspace/bosh-deployment/bosh.yml \
   -v internal_ip=${internal_ip} \
   -v access_key_id=${access_key_id} \
   -v secret_access_key=${secret_access_key} \
-  -v az=eu-central-1a \
-  -v region=eu-central-1 \
+  -v az=${aws_az} \
+  -v region=${aws_region} \
   -v default_key_name=bosh \
   -v default_security_groups=[bosh] \
   -v subnet_id=${subnet_id} \

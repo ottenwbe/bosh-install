@@ -6,9 +6,11 @@ internal_ip=$3
 access_key_id=$4
 secret_access_key=$5
 subnet_id=$6
-private_key_file=$7
+aws_az=$7
+aws_region=$8
+private_key_file=$9
 
-stemcell_url=https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3363.9
+stemcell_url=https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3541.12
 
 echo " --Update system-- "
 sudo apt -y update
@@ -24,9 +26,9 @@ echo " --Preparing deployments-- "
 git clone https://github.com/cloudfoundry/bosh-deployment ~/workspace/bosh-deployment
 
 echo " --Download and Install bosh-cli-- "
-curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.1-linux-amd64
-chmod +x bosh-cli-2.0.1-linux-amd64
-sudo mv bosh-cli-2.0.1-linux-amd64 /usr/local/bin/bosh
+curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-3.0.1-linux-amd64
+chmod +x bosh-cli-3.0.1-linux-amd64
+sudo mv bosh-cli-3.0.1-linux-amd64 /usr/local/bin/bosh
 
 echo " --Create a directory for the director-- "
 mkdir -p ~/deployments/bosh-master
@@ -45,8 +47,8 @@ bosh create-env ~/workspace/bosh-deployment/bosh.yml \
   -v internal_ip=${internal_ip} \
   -v access_key_id=${access_key_id} \
   -v secret_access_key=${secret_access_key} \
-  -v az=eu-central-1a \
-  -v region=eu-central-1 \
+  -v az=${aws_az} \
+  -v region=${aws_region} \
   -v default_key_name=bosh \
   -v default_security_groups=[bosh] \
   -v subnet_id=${subnet_id} \
